@@ -24,3 +24,6 @@ target/
 *.log
 *.swp
 *.swo
+
+# misc
+*.class

@@ -5,3 +5,22 @@ ivy/
 lib/
 target/
 .idea/
+bin/
+config/
+
+# Eclipse specific files
+.project
+.classpath
+.settings/
+
+# VSCode specific files
+settings.json
+
+# Maven target directory (build output)
+target/
+
+# IDE-specific files
+*.iml
+*.log
+*.swp
+*.swo

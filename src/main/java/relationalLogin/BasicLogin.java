@@ -18,10 +18,10 @@ import java.util.Map;
 public abstract class BasicLogin implements LoginModule
 {
 	// initial state
-	protected Subject			subject;
-	protected CallbackHandler	callbackHandler;
-	protected Map				sharedState;
-	protected Map				options;
+	protected Subject				subject;
+	protected CallbackHandler		callbackHandler;
+	protected Map<String, ?>	sharedState;
+	protected Map<String, ?>	options;
 
 	// configurable option
 	protected boolean			debug			= false;
@@ -33,7 +33,7 @@ public abstract class BasicLogin implements LoginModule
 	/**
 	 * Module initialization.
 	 */
-	public void initialize(Subject subject, CallbackHandler callbackHandler, Map sharedState, Map options)
+	public void initialize(Subject subject, CallbackHandler callbackHandler, Map<String, ?> sharedState, Map<String, ?> options)
 	{
 		// Stash our copy of supplied arguments
 		this.subject			= subject;

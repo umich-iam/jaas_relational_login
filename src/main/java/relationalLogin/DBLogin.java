@@ -10,9 +10,6 @@ import java.util.logging.Logger;
 import javax.security.auth.*;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.apache.commons.codec.digest.Md5Crypt;
 
 /**
  * Simple database based authentication module.
@@ -33,7 +30,6 @@ public class DBLogin extends SimpleLogin {
 	protected String where;
 
 	private Connection con;
-	private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 	private static final Logger logger = Logger.getLogger(DBLogin.class.getName());
 
@@ -98,7 +94,7 @@ public class DBLogin extends SimpleLogin {
 	
 			String hashingAlg = getOption("hashAlgorithm", null);
 	
-			if (!tryHashingPassword(new String(password), upwd, salt, hashingAlg)) {
+			if (!PasswordUtils.tryHashingPassword(new String(password), upwd, salt, hashingAlg)) {
 				throw new FailedLoginException(getOption("errorMessage", "Invalid details"));
 			}
 
@@ -140,44 +136,6 @@ public class DBLogin extends SimpleLogin {
 		}
 	}
 
-	    // Method to try hashing the password
-		public boolean tryHashingPassword(String password, String storedHash, String salt, String hashingAlg) {
-			String tpwd = new String();
-
-			try {
-				if (hashingAlg != null && !hashingAlg.isEmpty()) {
-					if (hashingAlg.toLowerCase().equals("bcrypt")) {
-						tpwd = new String(password);
-						String storedHashBcrypt = "$2a" + storedHash.substring(3);
-						return passwordEncoder.matches(tpwd, storedHashBcrypt);
-					} else if (hashingAlg.toLowerCase().equals("md5crypt")) {
-						tpwd = password;
-						return storedHash.equals(Md5Crypt.md5Crypt(tpwd.getBytes(), storedHash));
-					} else {
-						tpwd = this.hashPassword(password + salt, hashingAlg);
-						return storedHash.toLowerCase().equals(tpwd.toLowerCase());
-					}
-				} else {
-					tpwd = password;
-					return storedHash.equals(tpwd);
-				}
-			} catch (NoSuchAlgorithmException e) {
-				logger.log(Level.SEVERE, "Hashing algorithm not found", e);
-				return false;
-			}
-		}
-
-	String hashPassword(String input, String hashingAlg) throws NoSuchAlgorithmException {
-		MessageDigest mDigest = MessageDigest.getInstance(hashingAlg);
-		byte[] result = mDigest.digest(input.getBytes());
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < result.length; i++) {
-			sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
-		}
-
-		return sb.toString();
-	}
-
 	private void updateLastLogin(String username) {
 		// SQL statement to update the last_login column
 		String stmt = "UPDATE " + userTable + " SET " + lastLoginColumn + " = CURRENT_TIMESTAMP WHERE " + userColumn + "= ?";
@@ -189,13 +147,4 @@ public class DBLogin extends SimpleLogin {
 			e.printStackTrace();
 		}
 	}
-
-	public static void main(String[] args) {
-        DBLogin dbLogin = new DBLogin();
-        try {
-            dbLogin.updateLastLogin("testuser");
-        } finally {
-            dbLogin.closeConnection();
-        }
-    }
 }

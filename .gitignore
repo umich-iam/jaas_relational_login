@@ -1,12 +1,15 @@
 sample_jaas.config
 build/
 dist/
-ivy/
 lib/
 target/
 .idea/
 bin/
 config/
+*.class
+
+# Maven target directory (build output)
+target/
 
 # Eclipse specific files
 .project
@@ -16,14 +19,8 @@ config/
 # VSCode specific files
 settings.json
 
-# Maven target directory (build output)
-target/
-
 # IDE-specific files
 *.iml
 *.log
 *.swp
 *.swo
-
-# misc
-*.class

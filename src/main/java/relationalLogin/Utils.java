@@ -3,6 +3,9 @@ package relationalLogin;
 
 import java.security.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Utility methods for com.tagish.auth.*. All the methods in here are static
  * so Utils should never be instantiated.
@@ -14,6 +17,13 @@ public class Utils
 {
 	private final static String     ALGORITHM   = "MD5";
 	private static MessageDigest    md = null;
+
+	private static final Logger logger = LoggerFactory.getLogger(Utils.class);
+
+	static {
+        // Static initializer block for SLF4J
+        logger.info("SLF4J Logger initialized in Utils class");
+    }
 
 	/**
 	 * Can't make these: all the methods are static

@@ -1,112 +1,144 @@
 package relationalLogin;
 
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 
 import org.apache.commons.codec.digest.Crypt;
-import org.apache.commons.codec.digest.Md5Crypt;
 import org.apache.commons.codec.digest.DigestUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class PasswordUtils {
-    private static final Logger logger = Logger.getLogger(DBLogin.class.getName());
+    // these should match the values specified by the front-end application
+    public static final String SHA512_PREFIX = "$6$";
+    public static final String SHA512_ROUNDS = "656000";
+    public static final String SHA256_PREFIX = "$5$";
+    public static final String SHA256_ROUNDS = "535000";
+    public static final String BCRYPT_PREFIX = "$2b$";
+    public static final String BCRYPT_ROUNDS = "12";
+    public static final String MD5_PREFIX = "$1$";
+
+    private static final Logger logger = LoggerFactory.getLogger(DBLogin.class.getName());
     private static final BCryptPasswordEncoder bcryptEncoder = new BCryptPasswordEncoder();
     private static PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    // method to hash the password using the specified algorithm
+    public static String hashPassword(byte[] password, String salt, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        logger.debug("hashPassword()  Password: " + new String(password));
+        logger.debug("hashPassword()  Password Bytes: " + Arrays.toString(password));
+        logger.debug("hashPassword() Salt: " + salt);
+        logger.debug("hashPassword() Algorithm: " + algorithm);
 
-    public static String hashPassword(String input, String hashingAlg) throws NoSuchAlgorithmException {
-		MessageDigest mDigest = MessageDigest.getInstance(hashingAlg);
-		byte[] result = mDigest.digest(input.getBytes());
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < result.length; i++) {
-			sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
-		}
-
-		return sb.toString();
-	}
-
-    public static String hashPasswordNew(String password, String hashingAlg) {
-        switch (hashingAlg) {
+        // String hashedPassword = new String();
+        // String extractedSalt = new String();
+        
+        switch (algorithm.toLowerCase()) {
             case "bcrypt":
-                return bcryptEncoder.encode(password);
+                return BCrypt.hashpw(new String(password), salt);
             case "crypt":
-                return Crypt.crypt(password);
-            // Add cases for other algorithms if needed
+                return Crypt.crypt(password, salt);
             default:
-                throw new IllegalArgumentException("Unsupported hashing algorithm: " + hashingAlg);
+                MessageDigest md = MessageDigest.getInstance(algorithm);
+                byte[] hashedBytes = md.digest((new String(password) + salt).getBytes());
+                StringBuilder sb = new StringBuilder();
+                for (byte b : hashedBytes) {
+                    sb.append(String.format("%02x", b));
+                }
+                logger.debug("hashPassword()  Hashed Password: " + sb.toString());
+                return sb.toString();
         }
     }
+    
+    // method to verify the password
+    public static boolean checkPassword(byte[] password, String storedHash, String salt, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
 
-    // Method to try hashing the password
-    public static boolean tryHashingPassword(String password, String storedHash, String salt, String hashingAlg) {
-        String tpwd = new String();
+        logger.debug("checkPassword() Password: " + new String(password));
+        logger.debug("checkPassword() Password Bytes: " + Arrays.toString(password));
+        logger.debug("checkPassowrd() Salt: " + salt);
+        logger.debug("checkPassword() Algorithm: " + algorithm);
+        logger.debug("checkPassword() Stored Hash: " + storedHash);
 
-        try {
-            logger.log(Level.SEVERE, "I think this password was hashed using: " + guessHashingAlg(storedHash));
-        } catch (IllegalArgumentException e) {
-            logger.log(Level.SEVERE, "Error: " + e.getMessage());
+        if (algorithm.equalsIgnoreCase("crypt")) {
+            logger.debug("checkPassword() crypt algorithm: " + whichCryptAlgorithm(storedHash));
+        }
+
+        if (algorithm == null || algorithm.isEmpty()) {
+            logger.debug("No hashing algorithm specified, trying string match");
+            return storedHash.equals(new String(password));
         }
         
-        try {
-            if (hashingAlg != null && !hashingAlg.isEmpty()) {
-                if (hashingAlg.toLowerCase().equals("bcrypt")) {
-                    tpwd = new String(password);
-                    String storedHashBcrypt = "$2a" + storedHash.substring(3);
-                    return passwordEncoder.matches(tpwd, storedHashBcrypt);
-                } else if (hashingAlg.toLowerCase().equals("md5crypt")) {
-                    tpwd = password;
-                    return storedHash.equals(Md5Crypt.md5Crypt(tpwd.getBytes(), storedHash));
-                } else {
-                    tpwd = hashPassword(password + salt, hashingAlg);
-                    return storedHash.toLowerCase().equals(tpwd.toLowerCase());
-                }
-            } else {
-                tpwd = password;
-                return storedHash.equals(tpwd);
-            }
-        } catch (NoSuchAlgorithmException e) {
-            logger.log(Level.SEVERE, "Hashing algorithm not found", e);
-            return false;
-        }
+        String hashedPassword = hashPassword(password, salt, algorithm);
+        logger.debug("checkPassword() Hashed password: " + hashedPassword);
+
+        logger.debug("checkPassword() Stored Hash:     " + storedHash);
+        logger.debug("checkPassword() Hashed Password: " + hashedPassword);
+        logger.debug("checkPassword() Stored Hash Length: " + storedHash.length());
+        logger.debug("checkPassword() Hashed Password Length: " + hashedPassword.length());
+
+        logger.debug("checkPassword() Stored Hash Bytes:     " + Arrays.toString(storedHash.getBytes()));
+        logger.debug("checkPassword() Hashed Password Bytes: " + Arrays.toString(hashedPassword.getBytes()));
+
+        boolean isMatch = storedHash.equals(hashedPassword);
+        logger.debug("checkPassword() Passwords match: " + isMatch);
+        return isMatch;
     }
 
-    public static boolean checkPassword(String rawPassword, String hashedPassword, String hashingAlg) throws IllegalArgumentException {
-        switch (hashingAlg) {
-            case "bcrypt":
-                return bcryptEncoder.matches(rawPassword, hashedPassword);
-            case "crypt":
-                return Crypt.crypt(rawPassword, hashedPassword).equals(hashedPassword);
-            // Add cases for other algorithms if needed
-            default:
-                throw new IllegalArgumentException("Unsupported hashing algorithm: " + hashingAlg);
-        }
-    }
-
-    // try to programmatically determine the hashing algorithm used
-    private static String guessHashingAlg(String password) {
-        logger.log(Level.SEVERE, "provided hash: " + password);
-    
-        if (!password.startsWith("$")) {
-            return "crypt";
-        }
-        if (password.startsWith("$6$")) {
+    private static String whichCryptAlgorithm (String storedHash) throws IllegalArgumentException {
+        if (storedHash.startsWith(SHA512_PREFIX)) {
             return "SHA-512";
-        } else if (password.startsWith("$5$")) {
+        } else if (storedHash.startsWith(SHA256_PREFIX)) {
             return "SHA-256";
-        } else if (password.startsWith("$4$")) {
-            return "SHA-1";
-        } else if (password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$")) {
-            return "bcrypt";
-        } else if (password.startsWith("$1$")) {
-            return "md5crypt";
+        } else if (storedHash.startsWith(MD5_PREFIX)) {
+            return "MD5";
+        } else if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+            return "BCrypt";
+        } else if (storedHash.length() == 13) {
+            return "DES";
         } else {
-            logger.log(Level.WARNING, "Unknown hashing algorithm prefix in password: " + password);
-            throw new IllegalArgumentException("Unknown hashing algorithm prefix in password: " + password);
+            logger.debug("Stored hash: " + storedHash);
+            throw new IllegalArgumentException("Unknown hash algorithm");
         }
     }
+
+    // Helper method to extract the salt from the stored hash
+    // private static String extractSaltFromCryptString(String storedHash) {
+    //     switch (whichCryptAlgorithm(storedHash)) {
+    //         case "SHA-512":
+    //         case "SHA-256":
+    //             // Check if the salt contains the "rounds=" segment
+    //             int roundsIndex = storedHash.indexOf("rounds=");
+    //             if (roundsIndex != -1) {
+    //                 // Find the end of the rounds segment
+    //                 int endOfRounds = storedHash.indexOf('$', roundsIndex);
+    //                 // Find the next '$' after the end of the rounds segment
+    //                 int nextDollarIndex = storedHash.indexOf('$', endOfRounds + 1);
+    //                 return storedHash.substring(0, nextDollarIndex + 1);
+    //             } else {
+    //                 // Assuming the salt is the part of the stored hash up to the third '$' character
+    //                 int thirdDollarIndex = storedHash.indexOf('$', storedHash.indexOf('$', storedHash.indexOf('$') + 1) + 1);
+    //                 return storedHash.substring(0, thirdDollarIndex + 1);
+    //             }
+    //         case "BCrypt":
+    //             // For bcrypt, the salt is the first 29 characters
+    //             return storedHash.substring(0, 29);
+    //         case "MD5":
+    //             // For MD5, the salt is between the second and third '$' characters
+    //             int secondDollarIndex = storedHash.indexOf('$', storedHash.indexOf('$') + 1);
+    //             return storedHash.substring(0, storedHash.indexOf('$', secondDollarIndex + 1) + 1);
+    //         case "DES":
+    //             // For DES, the salt is the first two characters
+    //             return storedHash.substring(0, 2);
+    //         default:
+    //             return storedHash.substring(0, storedHash.indexOf("$", storedHash.indexOf("$") + 1) + 1);
+    //     }
+    // }
 }

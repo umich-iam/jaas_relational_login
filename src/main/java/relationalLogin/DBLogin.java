@@ -3,13 +3,15 @@ package relationalLogin;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.sql.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.security.auth.*;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Simple database based authentication module.
@@ -31,7 +33,7 @@ public class DBLogin extends SimpleLogin {
 
 	private Connection con;
 
-	private static final Logger logger = Logger.getLogger(DBLogin.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DBLogin.class.getName());
 
 	public void initialize(Subject subject, CallbackHandler callbackHandler, Map<String, ?> sharedState,
 			Map<String, ?> options) {
@@ -48,12 +50,13 @@ public class DBLogin extends SimpleLogin {
 		if ((dbUser == null && dbPassword != null) || (dbUser != null && dbPassword == null))
 			throw new Error("Either provide dbUser and dbPassword or encode both in dbURL");
 
-		userTable = getOption("userTable", "User");
-		userColumn = getOption("userColumn", "user_name");
-		passColumn = getOption("passColumn", "user_passwd");
-		saltColumn = getOption("saltColumn", "");
-		lastLoginColumn = getOption("lastLoginColumn", "");
-		where = getOption("where", "");
+		userTable       = getOption("userTable",       "User");
+		userColumn      = getOption("userColumn",      "user_name");
+		passColumn      = getOption("passColumn",      "user_passwd");
+		saltColumn      = getOption("saltColumn",      "");
+		lastLoginColumn	= getOption("lastLoginColumn", "");
+		where           = getOption("where",           "");
+
 		if (null != where && where.length() > 0)
 			where = " AND " + where;
 		else
@@ -78,6 +81,7 @@ public class DBLogin extends SimpleLogin {
 				con.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
+				throw new Error("Error closing database connection (" + e.getMessage() + ")");
 			}
 		}
 	}
@@ -86,16 +90,40 @@ public class DBLogin extends SimpleLogin {
 		try {
 			// Retrieve the stored hashed password from the database
 			String[] passwordData = getPasswordFromDatabase(username);
-			String upwd = passwordData[0];
+			String storedHash = passwordData[0];
 			String salt = passwordData[1];
 	
-			// Check the password
-			String tpwd = new String();
-	
-			String hashingAlg = getOption("hashAlgorithm", null);
-	
-			if (!PasswordUtils.tryHashingPassword(new String(password), upwd, salt, hashingAlg)) {
-				throw new FailedLoginException(getOption("errorMessage", "Invalid details"));
+			String hashAlgorithm = getOption("hashAlgorithm", null);
+			try {
+				// Convert char[] password to byte[]
+				byte[] passwordBytes = new String(password).getBytes();
+				logger.debug("1password: " + new String(password));
+				logger.debug("1passwordBytes: " + Arrays.toString(passwordBytes));
+
+				if (!PasswordUtils.checkPassword(passwordBytes, storedHash, salt, hashAlgorithm)) {
+					throw new FailedLoginException(getOption("errorMessage", "Invalid details"));	
+				}
+
+				if (hashAlgorithm.equalsIgnoreCase("crypt") && getOption("rehashCryptEnabled", false)) {
+					// Check if the password needs to be rehashed
+					logger.debug("Stored Hash: " + storedHash);
+					logger.debug("SHA512 Prefix: " + PasswordUtils.SHA512_PREFIX);
+					logger.debug("Starts with SHA512 Prefix: " + storedHash.startsWith(PasswordUtils.SHA512_PREFIX));
+					
+					if (!storedHash.startsWith(PasswordUtils.SHA512_PREFIX)) {
+						// Update the stored password with the new hash and salt
+						logger.debug("update the password hash to SHA-512");
+						logger.debug("2password: " + new String(password));
+						passwordBytes = new String(password).getBytes();
+						logger.debug("2passwordBytes: " + Arrays.toString(passwordBytes));
+						String newSalt = PasswordUtils.SHA512_PREFIX + "rounds=" + PasswordUtils.SHA512_ROUNDS + "$" + Utils.generateRandomSalt();
+						String newHash = PasswordUtils.hashPassword(passwordBytes, newSalt, hashAlgorithm);
+						logger.debug("updated crypt hash: " + newHash);
+						updateStoredPassword(username, newHash);
+					}
+				}
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+				throw new FailedLoginException(getOption("errorMessage", "Invalid details"));	
 			}
 
 			// If password is valid, update the last login timestamp
@@ -106,27 +134,29 @@ public class DBLogin extends SimpleLogin {
 			return p;
 		} catch (SQLException e) {
 			throw new LoginException("Error reading user database (" + e.getMessage() + ")");
+		} finally {
+            closeConnection(); // Ensure the connection is closed
 		}
 	}
 
 	private String[] getPasswordFromDatabase(String username) throws SQLException, FailedLoginException, LoginException {
-		String stmt = new String();
-		stmt = "SELECT " + passColumn + (!saltColumn.equals("") ? ("," + saltColumn) : "") + " FROM " + userTable +
+		String sql = new String();
+		sql = "SELECT " + passColumn + (!saltColumn.equals("") ? ("," + saltColumn) : "") + " FROM " + userTable +
 				" WHERE " + userColumn + "=?" + where;
 
 		// Log the full SQL
-		String fullSql = stmt.replaceFirst("\\?", "'" + username + "'");
-		logger.log(Level.SEVERE, "Executing SQL: " + fullSql);
+		String fullSql = sql.replaceFirst("\\?", "'" + username + "'");
+		logger.debug("Executing SQL: " + fullSql);
 
-		try (PreparedStatement psu = con.prepareStatement(stmt)) {
-			psu.setString(1, username);
-			try (ResultSet rsu = psu.executeQuery()) {
-				if (!rsu.next()) {
+		try (PreparedStatement preparedStatment = con.prepareStatement(sql)) {
+			preparedStatment.setString(1, username);
+			try (ResultSet resultSet = preparedStatment.executeQuery()) {
+				if (!resultSet.next()) {
 					throw new FailedLoginException(getOption("errorMessage", "Invalid details"));
 				}
 
-				String password = rsu.getString(1);
-				String salt = (!saltColumn.equals("") ? rsu.getString(2) : "");
+				String password = resultSet.getString(1);
+				String salt = (!saltColumn.equals("") ? resultSet.getString(2) : "");
 				return new String[]{password, salt};
 			} catch (SQLException e) {
 				// Handle SQL exception
@@ -136,15 +166,29 @@ public class DBLogin extends SimpleLogin {
 		}
 	}
 
-	private void updateLastLogin(String username) {
-		// SQL statement to update the last_login column
-		String stmt = "UPDATE " + userTable + " SET " + lastLoginColumn + " = CURRENT_TIMESTAMP WHERE " + userColumn + "= ?";
+	private void updateStoredPassword(String username, String passwordHash) throws SQLException{
+		// SQL statement to update the password and salt columns
+		String sql = "UPDATE " + userTable + " SET " + passColumn + " = ? WHERE " + userColumn + "= ?";
 	
-		try (PreparedStatement psu = con.prepareStatement(stmt)) {
-			psu.setString(1, username);
-			psu.executeUpdate();
+		try (PreparedStatement preparedStatment = con.prepareStatement(sql)) {
+			preparedStatment.setString(1, passwordHash);
+			preparedStatment.setString(2, username);
+			preparedStatment.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
+			throw new SQLException("Error updating user database (" + e.getMessage() + ")");
+		}
+	}
+
+	private void updateLastLogin(String username) throws SQLException {
+		// SQL statement to update the last_login column
+		String sql = "UPDATE " + userTable + " SET " + lastLoginColumn + " = CURRENT_TIMESTAMP WHERE " + userColumn + "= ?";
+		try (PreparedStatement preparedStatment = con.prepareStatement(sql)) {
+			preparedStatment.setString(1, username);
+			preparedStatment.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new SQLException("Error updating user database (" + e.getMessage() + ")");
 		}
 	}
 }

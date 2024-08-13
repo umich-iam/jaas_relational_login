@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
  */
 public class Utils
 {
-	private final static String     ALGORITHM   = "MD5";
 	private static MessageDigest    md = null;
 
 	private static final Logger logger = LoggerFactory.getLogger(Utils.class);
@@ -87,25 +86,15 @@ public class Utils
 		}
 	}
 
-	/**
-	 * Perform MD5 hashing on the supplied password and return a char array
-	 * containing the encrypted password as a printable string. The hash is
-	 * computed on the low 8 bits of each character.
-	 *
-	 * @param pwd The password to encrypt
-	 * @return a character array containing a 32 character long hex encoded
-	 * MD5 hash of the password
-	 */
-	public static char[] cryptPassword(char pwd[]) throws Exception
-	{
-		if (null == md) { md = MessageDigest.getInstance(ALGORITHM); }
-		md.reset();
-		byte pwdb[] = new byte[pwd.length];
-		for (int b = 0; b < pwd.length; b++) {
-			pwdb[b] = (byte) pwd[b];
+	// Generate a random salt for SHA-256 / SHA-512 crypt
+	public static String generateRandomSalt() {
+		SecureRandom random = new SecureRandom();
+		byte[] salt = new byte[16];
+		random.nextBytes(salt);
+		StringBuilder sb = new StringBuilder();
+		for (byte b : salt) {
+			sb.append(String.format("%02x", b));
 		}
-		char crypt[] = hexDump(md.digest(pwdb));
-		smudge(pwdb);
-		return crypt;
+		return sb.toString();
 	}
 }

@@ -24,4 +24,4 @@ java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes" \
   -Dlogback.configurationFile=config/logback.xml \
   sample.SampleAcn
 
-java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes" -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
+java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes" -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml com.robertogallea.shibboleth.idp.sample.SampleAcn

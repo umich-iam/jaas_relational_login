@@ -37,7 +37,7 @@
  * maintenance of any nuclear facility.
  */
 
-package sample;
+package com.robertogallea.shibboleth.idp.sample;
 
 import java.io.*;
 import java.util.*;

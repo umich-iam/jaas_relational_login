@@ -1,5 +1,5 @@
 // $Id: DBLogin.java,v 1.5 2003/02/17 20:13:23 andy Exp $
-package relationalLogin;
+package com.robertogallea.shibboleth.idp.relationalLogin;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -97,28 +97,18 @@ public class DBLogin extends SimpleLogin {
 			try {
 				// Convert char[] password to byte[]
 				byte[] passwordBytes = new String(password).getBytes();
-				logger.debug("1password: " + new String(password));
-				logger.debug("1passwordBytes: " + Arrays.toString(passwordBytes));
 
 				if (!PasswordUtils.checkPassword(passwordBytes, storedHash, salt, hashAlgorithm)) {
 					throw new FailedLoginException(getOption("errorMessage", "Invalid details"));	
 				}
 
 				if (hashAlgorithm.equalsIgnoreCase("crypt") && getOption("rehashCryptEnabled", false)) {
-					// Check if the password needs to be rehashed
-					logger.debug("Stored Hash: " + storedHash);
-					logger.debug("SHA512 Prefix: " + PasswordUtils.SHA512_PREFIX);
-					logger.debug("Starts with SHA512 Prefix: " + storedHash.startsWith(PasswordUtils.SHA512_PREFIX));
-					
+					// Check if the password needs to be rehashed					
 					if (!storedHash.startsWith(PasswordUtils.SHA512_PREFIX)) {
 						// Update the stored password with the new hash and salt
-						logger.debug("update the password hash to SHA-512");
-						logger.debug("2password: " + new String(password));
 						passwordBytes = new String(password).getBytes();
-						logger.debug("2passwordBytes: " + Arrays.toString(passwordBytes));
 						String newSalt = PasswordUtils.SHA512_PREFIX + "rounds=" + PasswordUtils.SHA512_ROUNDS + "$" + Utils.generateRandomSalt();
 						String newHash = PasswordUtils.hashPassword(passwordBytes, newSalt, hashAlgorithm);
-						logger.debug("updated crypt hash: " + newHash);
 						updateStoredPassword(username, newHash);
 					}
 				}
@@ -167,6 +157,8 @@ public class DBLogin extends SimpleLogin {
 	}
 
 	private void updateStoredPassword(String username, String passwordHash) throws SQLException{
+		logger.debug("Updating password for user: " + username);
+
 		// SQL statement to update the password and salt columns
 		String sql = "UPDATE " + userTable + " SET " + passColumn + " = ? WHERE " + userColumn + "= ?";
 	
@@ -181,6 +173,8 @@ public class DBLogin extends SimpleLogin {
 	}
 
 	private void updateLastLogin(String username) throws SQLException {
+		logger.debug("Updating last login for user: " + username);
+
 		// SQL statement to update the last_login column
 		String sql = "UPDATE " + userTable + " SET " + lastLoginColumn + " = CURRENT_TIMESTAMP WHERE " + userColumn + "= ?";
 		try (PreparedStatement preparedStatment = con.prepareStatement(sql)) {

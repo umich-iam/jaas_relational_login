@@ -85,7 +85,7 @@
   </dependencies>
 
   <build>
-    <sourceDirectory>src/test/java</sourceDirectory>
+    <sourceDirectory>src/main/java</sourceDirectory>
     <testSourceDirectory>src/test/java</testSourceDirectory>
     <plugins>
       <plugin>

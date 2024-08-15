@@ -24,7 +24,7 @@ This guide shows you how to implement JAAS authetication for Shibboleth using a 
 ## Prerequisites
 This guide assumes the following:
 
-* Familiarity with Shibboleth IDP.
+* Familiarity with Shibboleth IDP. _**NOTE:** This code was originally written for IDP v3, but we've used it with v4 and v5 at UMich_
 * You have a Shibboleth IDP installation already running on your system. If not, refer to official installation instructions at [Shibboleth Identity Provider 5 / DeployerResources / Installation](https://shibboleth.atlassian.net/wiki/spaces/IDP5/pages/3199500577/Installation).
 * You have a relational database of your choice containing a user table with username and (hashed) password columns, as follows (column names maybe different)
 

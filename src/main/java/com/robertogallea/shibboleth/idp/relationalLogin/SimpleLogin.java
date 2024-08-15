@@ -182,7 +182,7 @@ public abstract class SimpleLogin extends BasicLogin
 		pending         = null;
 		commitSucceeded	= false;
 		// Remove all the principals we added
-		Set s = subject.getPrincipals();
+		Set<Principal> s = subject.getPrincipals();
 		int sz = principals.size();
 		for (int p = 0; p < sz; p++) {
 			s.remove(principals.get(p));

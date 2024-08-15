@@ -1,9 +1,9 @@
 # Shibboleth: Using Relational DBMS as authentication backend
 ## Learn how to use a relational DBMS as authentication provider for Shibboleth IDP instead of default LDAP
 
-[The original documentation can be found here](https://robertogallea.com/posts/development/shibboleth-using-relational-dbms-as-authentication-backend)
-
 The information in README.md has additional information about updated features.
+
+[The original documentation can be found here](https://robertogallea.com/posts/development/shibboleth-using-relational-dbms-as-authentication-backend)
 
 Natively, Shibboleth supports a variety of authentication methods, among those the most general (and default) is Password-based authentication. It performs a username-password pair check against a user backend. The backend could be provided in many ways. Off the shelves Shibboleth provides following:
 

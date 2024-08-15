@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
  */
 public class Utils
 {
-	private static MessageDigest    md = null;
-
 	private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
 	static {
@@ -29,31 +27,6 @@ public class Utils
 	 */
 	private Utils()
 	{
-	}
-
-	/**
-	 * Turn a byte array into a char array containing a printable
-	 * hex representation of the bytes. Each byte in the source array
-	 * contributes a pair of hex digits to the output array.
-	 *
-	 * @param src the source array
-	 * @return a char array containing a printable version of the source
-	 * data
-	 */
-	private static char[] hexDump(byte src[])
-	{
-		char buf[] = new char[src.length * 2];
-		for (int b = 0; b < src.length; b++) {
-			String byt = Integer.toHexString((int) src[b] & 0xFF);
-			if (byt.length() < 2) {
-				buf[b * 2 + 0] = '0';
-				buf[b * 2 + 1] = byt.charAt(0);
-			} else {
-				buf[b * 2 + 0] = byt.charAt(0);
-				buf[b * 2 + 1] = byt.charAt(1);
-			}
-		}
-		return buf;
 	}
 
 	/**

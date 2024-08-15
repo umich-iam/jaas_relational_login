@@ -190,7 +190,9 @@ public class DBLogin extends SimpleLogin {
         String dbType = getDbType();
         String sql;
 
-        switch (dbType) {
+		logger.debug("DB Type: " + dbType);
+        
+		switch (dbType) {
             case "MySQL":
             case "PostgreSQL":
             case "SQLite":
@@ -206,6 +208,7 @@ public class DBLogin extends SimpleLogin {
                 throw new UnsupportedOperationException("Unsupported DBMS: " + dbType);
         }
 
+		logger.debug("SQL: " + sql);
         return sql;
     }
 

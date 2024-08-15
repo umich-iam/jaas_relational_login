@@ -89,7 +89,7 @@ edit it as required including the relevant data according to your DBMS configura
 
 **Note3**: available hashing algorithms are DBMS native hashing functions (e.g. SHA-1, SHA-256), bcrypt, and GNU crypt compatible hashes (SHA-512, SHA-256, MD5, DES)
 
-**Note4**: if you set **hashAlgorithm** to `crypt`, you need to set saltColumn to the same value you provide for **passwordColum**.  crypted strings contain the salt.
+**Note4**: if you set **hashAlgorithm** to `bcrypt` or `crypt`, you need to set saltColumn to the same value you provide for **passwordColum**.  crypted strings contain the salt.
 
 **Note5**: if your database credential has write access to the userTable, and you provide a value for lastLoginColumn, the timestamp of the user's login will be stored
 

@@ -6,8 +6,7 @@ import java.security.Principal;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 /**
  * Base class for a variety of simple login modules that simply authenticate
@@ -18,7 +17,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class SimpleLogin extends BasicLogin
 {
-	private static final Logger logger = LoggerFactory.getLogger(DBLogin.class.getName());
 
 	protected Vector<Principal>			principals      = null;
 	protected Vector<TypedPrincipal>    pending         = null;

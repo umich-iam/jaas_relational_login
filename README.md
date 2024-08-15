@@ -5,6 +5,8 @@ The information in README.md has additional information about updated features.
 
 [The original documentation can be found here](https://robertogallea.com/posts/development/shibboleth-using-relational-dbms-as-authentication-backend)
 
+_**NOTE:** This code seems to be heavily influenced by the [tagish-jaas](https://github.com/chriseldredge/tagish-jaas/tree/master).  I think the original repository is gone - the tagish.com domain seems to be for sale, and the only copy of the code I found looks like it started as a fork?_
+
 Natively, Shibboleth supports a variety of authentication methods, among those the most general (and default) is Password-based authentication. It performs a username-password pair check against a user backend. The backend could be provided in many ways. Off the shelves Shibboleth provides following:
 
 * LDAP-based, uses an LDAP source;

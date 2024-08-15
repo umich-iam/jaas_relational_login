@@ -28,8 +28,6 @@ public class PasswordUtils {
     public static final String MD5_PREFIX = "$1$";
 
     private static final Logger logger = LoggerFactory.getLogger(DBLogin.class.getName());
-    private static final BCryptPasswordEncoder bcryptEncoder = new BCryptPasswordEncoder();
-    private static PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // method to hash the password using the specified algorithm
     public static String hashPassword(byte[] password, String salt, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {

@@ -1,7 +1,6 @@
 // $Id: DBLogin.java,v 1.5 2003/02/17 20:13:23 andy Exp $
 package com.robertogallea.shibboleth.idp.relationalLogin;
 
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
@@ -176,7 +175,8 @@ public class DBLogin extends SimpleLogin {
 		logger.debug("Updating last login for user: " + username);
 
 		// SQL statement to update the last_login column
-		String sql = "UPDATE " + userTable + " SET " + lastLoginColumn + " = CURRENT_TIMESTAMP WHERE " + userColumn + "= ?";
+		String sql = getUpdateLastLoginSQL();
+
 		try (PreparedStatement preparedStatment = con.prepareStatement(sql)) {
 			preparedStatment.setString(1, username);
 			preparedStatment.executeUpdate();
@@ -185,4 +185,45 @@ public class DBLogin extends SimpleLogin {
 			throw new SQLException("Error updating user database (" + e.getMessage() + ")");
 		}
 	}
+
+    public String getUpdateLastLoginSQL() throws SQLException {
+        String dbType = getDbType();
+        String sql;
+
+        switch (dbType) {
+            case "MySQL":
+            case "PostgreSQL":
+            case "SQLite":
+                sql = "UPDATE " + userTable + " SET " + lastLoginColumn + " = CURRENT_TIMESTAMP WHERE " + userColumn + " = ?";
+                break;
+            case "Oracle":
+                sql = "UPDATE " + userTable + " SET " + lastLoginColumn + " = SYSDATE WHERE " + userColumn + " = ?";
+                break;
+            case "SQLServer":
+                sql = "UPDATE " + userTable + " SET " + lastLoginColumn + " = GETDATE() WHERE " + userColumn + " = ?";
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported DBMS: " + dbType);
+        }
+
+        return sql;
+    }
+
+	private String getDbType() throws SQLException {
+        String driverName = dbDriver.toLowerCase();
+
+        if (driverName.contains("mysql")) {
+            return "MySQL";
+        } else if (driverName.contains("postgresql")) {
+            return "PostgreSQL";
+        } else if (driverName.contains("oracle")) {
+            return "Oracle";
+        } else if (driverName.contains("sqlserver")) {
+            return "SQLServer";
+        } else if (driverName.contains("sqlite")) {
+            return "SQLite";
+        } else {
+            throw new UnsupportedOperationException("Unsupported DBMS: " + driverName);
+        }
+    }
 }

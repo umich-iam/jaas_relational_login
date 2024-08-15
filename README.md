@@ -81,10 +81,15 @@ ShibUserPassAuth  {
 edit it as required including the relevant data according to your DBMS configuration.
 
 **Note**: if in your table you have a salt stored in a column, set it in saltColumn, parameter, otherwise leave it blank, or omit it. The salted hash will be calculated as hash(password + salt)
+
 **Note2**: in the case you wish to use cleartext password, leave hashAlgorithm blank or omit it.
+
 **Note3**: available hashing algorithms are DBMS native hashing functions (e.g. SHA-1, SHA-256), bcrypt, and GNU crypt compatible hashes (SHA-512, SHA-256, MD5, DES)
+
 **Note4**: if you set **hashAlgorithm** to `crypt`, you need to set saltColumn to the same value you provide for **passwordColum**.  crypted strings contain the salt.
+
 **Note5**: if your database credential has write access to the userTable, and you provide a value for lastLoginColumn, the timestamp of the user's login will be stored
+
 **Note6**: if you are using `crypt` and the database has write access to the userTable, the module can be configured to re-hash the password using a more secure algorithm, by setting `rehashCryptEnabled` to `true`. (commons-codec Crypt.crypt() currently defaults to SHA-512)
 
 ## Setting JAAS as authenticator for Shibboleth IDP

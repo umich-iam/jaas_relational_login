@@ -6,6 +6,9 @@ import java.security.Principal;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Base class for a variety of simple login modules that simply authenticate
  * a user against some database of user credentials.
@@ -15,8 +18,10 @@ import javax.security.auth.login.*;
  */
 public abstract class SimpleLogin extends BasicLogin
 {
-	protected Vector			principals      = null;
-	protected Vector            pending         = null;
+	private static final Logger logger = LoggerFactory.getLogger(DBLogin.class.getName());
+
+	protected Vector<Principal>			principals      = null;
+	protected Vector<TypedPrincipal>    pending         = null;
 
 	// the authentication status
 	protected boolean			commitSucceeded = false;
@@ -31,7 +36,7 @@ public abstract class SimpleLogin extends BasicLogin
 	 * @return a Vector of Principals that apply for this user.
 	 * @throws LoginException if the login fails.
 	 */
-	protected abstract Vector validateUser(String username, char password[]) throws LoginException;
+	protected abstract Vector<TypedPrincipal> validateUser(String username, char password[]) throws LoginException;
 
 	/**
 	 * Authenticate the user.
@@ -89,7 +94,7 @@ public abstract class SimpleLogin extends BasicLogin
 	 * @param s The <CODE>Set</CODE> to add the Principle to
 	 * @param p Principle to add
 	 */
-	protected void putPrincipal(Set s, Principal p)
+	protected void putPrincipal(Set<Principal> s, Principal p)
 	{
 		s.add(p);
 		principals.add(p);
@@ -121,8 +126,8 @@ public abstract class SimpleLogin extends BasicLogin
 			return false;
 		}
 
-		principals = new Vector();
-		Set s = subject.getPrincipals();
+		principals = new Vector<Principal>();
+		Set<Principal> s = subject.getPrincipals();
 
 		for (int p = 0; p < pending.size(); p++) {
 			putPrincipal(s, (Principal) pending.get(p));

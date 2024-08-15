@@ -45,7 +45,7 @@ Build it to obtain a jar archive, that has to be deployed to your shibboleth IDP
 ## JAAS Custom Class Deployment
 After building the JAAS module, you are required to deploy to the IDP application, in order to make it available for use. This is accomplished following some steps:
 
-1) Copy the archive JAAS_relational_login.jar under /edit-webapp/WEB-INF/lib
+1) Copy the archive jaas_relational_login-2.0.0.jar under /edit-webapp/WEB-INF/lib
 2) Download the JDBC driver for your DBMS, for example, for Oracle is ojdbc7.jar and copy it under /edit-webapp/WEB-INF/lib
 3) Run /bin/build.sh script to rebuild the IDP web application
 4) If required, deploy the newly built application into your container (tomcat, jetty, IIs, etc.)
@@ -131,10 +131,10 @@ cd path/to/my-java-project
 mvn package
 
 ## Verify the contents of the generated JAR file
-jar tf target/jaas_relational_login-0.0.1-SNAPSHOT.jar
+jar tf target/jaas_relational_login-2.0-SNAPSHOT.jar
 
 ### Run the Java application using the generated JAR file
-java -cp target/jaas_relational_login-0.0.1-SNAPSHOT.jar:lib/mysql-connector-j-8.3.0.jar:lib/spring-security-crypto-5.1.3.RELEASE.jar:lib/commons-logging-1.3.3.jar:lib/commons-codec-1.16.1.jar -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
+java -cp target/jaas_relational_login-2.0.0-SNAPSHOT.jar:lib/mysql-connector-j-8.3.0.jar:lib/spring-security-crypto-5.1.3.RELEASE.jar:lib/commons-logging-1.3.3.jar:lib/commons-codec-1.16.1.jar -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
 
 ## THIS SEEMS LESS ANNOYING?
 mvn dependency:build-classpath -Dmdep.outputFile=classpath.txt

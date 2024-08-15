@@ -42,7 +42,6 @@ package com.robertogallea.shibboleth.idp.sample;
 import java.io.*;
 import java.util.*;
 import javax.security.auth.login.*;
-import javax.security.auth.*;
 import javax.security.auth.callback.*;
 
 /**
@@ -78,18 +77,17 @@ public class SampleAcn {
         }
 
         
-        try {
+        if (lc != null) {
+            try {
+                // attempt authentication
+                lc.login();
+            } catch (LoginException le) {
+                System.err.println("Authentication failed:");
+                System.err.println("  " + le.getMessage());
+                System.exit(-1);
+            }
 
-            // attempt authentication
-            lc.login();
-
-
-        } catch (LoginException le) {
-
-              System.err.println("Authentication failed:");
-              System.err.println("  " + le.getMessage());
-              System.exit(-1);
-
+            System.out.println("Authentication succeeded!");
         }
         
 
@@ -178,7 +176,6 @@ class MyCallbackHandler implements CallbackHandler {
 
         char[] lineBuffer;
         char[] buf;
-        int i;
 
         buf = lineBuffer = new char[128];
 

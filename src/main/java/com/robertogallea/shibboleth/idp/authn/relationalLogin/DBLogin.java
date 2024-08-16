@@ -30,7 +30,7 @@ public class DBLogin extends SimpleLogin {
 	protected String lastLoginColumn;
 	protected String where;
 
-	private Connection con;
+	private Connection connection;
 
 	private static final Logger logger = LoggerFactory.getLogger(DBLogin.class.getName());
 
@@ -66,18 +66,18 @@ public class DBLogin extends SimpleLogin {
 			Class.forName(dbDriver);
 
 			if (dbUser != null)
-				con = DriverManager.getConnection(dbURL, dbUser, dbPassword);
+				connection = DriverManager.getConnection(dbURL, dbUser, dbPassword);
 			else
-				con = DriverManager.getConnection(dbURL);
+				connection = DriverManager.getConnection(dbURL);
 		} catch (ClassNotFoundException | SQLException e) {
 			throw new Error("Failed to initialize database connection", e);
 		}
 	}
 
 	public void closeConnection() {
-		if (con != null) {
+		if (connection != null) {
 			try {
-				con.close();
+				connection.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 				throw new Error("Error closing database connection (" + e.getMessage() + ")");
@@ -137,7 +137,7 @@ public class DBLogin extends SimpleLogin {
 		String fullSql = sql.replaceFirst("\\?", "'" + username + "'");
 		logger.debug("Executing SQL: " + fullSql);
 
-		try (PreparedStatement preparedStatment = con.prepareStatement(sql)) {
+		try (PreparedStatement preparedStatment = connection.prepareStatement(sql)) {
 			preparedStatment.setString(1, username);
 			try (ResultSet resultSet = preparedStatment.executeQuery()) {
 				if (!resultSet.next()) {
@@ -161,7 +161,7 @@ public class DBLogin extends SimpleLogin {
 		// SQL statement to update the password and salt columns
 		String sql = "UPDATE " + userTable + " SET " + passColumn + " = ? WHERE " + userColumn + "= ?";
 	
-		try (PreparedStatement preparedStatment = con.prepareStatement(sql)) {
+		try (PreparedStatement preparedStatment = connection.prepareStatement(sql)) {
 			preparedStatment.setString(1, passwordHash);
 			preparedStatment.setString(2, username);
 			preparedStatment.executeUpdate();
@@ -177,7 +177,7 @@ public class DBLogin extends SimpleLogin {
 		// SQL statement to update the last_login column
 		String sql = getUpdateLastLoginSQL();
 
-		try (PreparedStatement preparedStatment = con.prepareStatement(sql)) {
+		try (PreparedStatement preparedStatment = connection.prepareStatement(sql)) {
 			preparedStatment.setString(1, username);
 			preparedStatment.executeUpdate();
 		} catch (SQLException e) {
@@ -186,7 +186,7 @@ public class DBLogin extends SimpleLogin {
 		}
 	}
 
-    public String getUpdateLastLoginSQL() throws SQLException {
+    private String getUpdateLastLoginSQL() throws SQLException {
         String dbType = getDbType();
         String sql;
 

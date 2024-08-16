@@ -1,10 +1,11 @@
-package com.robertogallea.shibboleth.idp.relationalLogin;
+package com.robertogallea.shibboleth.idp.authn.relationalLogin;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.MockitoAnnotations;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
+
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.lang.reflect.InvocationTargetException;

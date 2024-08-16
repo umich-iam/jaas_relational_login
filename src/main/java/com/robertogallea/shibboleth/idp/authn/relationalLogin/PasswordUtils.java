@@ -1,4 +1,4 @@
-package com.robertogallea.shibboleth.idp.relationalLogin;
+package com.robertogallea.shibboleth.idp.authn.relationalLogin;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
 

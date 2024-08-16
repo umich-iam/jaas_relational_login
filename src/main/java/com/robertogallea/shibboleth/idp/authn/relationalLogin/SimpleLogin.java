@@ -1,5 +1,5 @@
 // $Id: SimpleLogin.java,v 1.5 2003/02/17 20:13:23 andy Exp $
-package com.robertogallea.shibboleth.idp.relationalLogin;
+package com.robertogallea.shibboleth.idp.authn.relationalLogin;
 
 import java.util.*;
 import java.security.Principal;

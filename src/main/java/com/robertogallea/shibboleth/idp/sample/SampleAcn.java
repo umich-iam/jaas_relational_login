@@ -87,13 +87,13 @@ public class SampleAcn {
                 System.exit(-1);
             }
 
-            System.out.println("Authentication succeeded!");
+            System.out.println("1Authentication succeeded!");
         }
         
 
         
 
-        System.out.println("Authentication succeeded!");
+        System.out.println("2Authentication succeeded!");
 
     }
 }

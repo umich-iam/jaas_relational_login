@@ -19,76 +19,141 @@ import org.slf4j.LoggerFactory;
  * @version 1.0.3
  */
 public class DBLogin extends SimpleLogin {
-	protected String dbDriver;
-	protected String dbURL;
-	protected String dbUser;
-	protected String dbPassword;
-	protected String userTable;
-	protected String userColumn;
-	protected String passColumn;
-	protected String saltColumn;
-	protected String lastLoginColumn;
-	protected String where;
-
-	private Connection connection;
+    private String dbDriver;
+    private String dbURL;
+    private String dbUser;
+    private String dbPassword;
+    private String userTable;
+    private String userColumn;
+    private String passColumn;
+    private String saltColumn;
+    private String lastLoginColumn;
+    private String where;
 
 	private static final Logger logger = LoggerFactory.getLogger(DBLogin.class.getName());
 
+    // Getter and Setter methods
+    public String getDbDriver() {
+        return dbDriver;
+    }
+
+    public void setDbDriver(String dbDriver) {
+        this.dbDriver = dbDriver;
+    }
+
+    public String getDbURL() {
+        return dbURL;
+    }
+
+    public void setDbURL(String dbURL) {
+        this.dbURL = dbURL;
+    }
+
+    public String getDbUser() {
+        return dbUser;
+    }
+
+    public void setDbUser(String dbUser) {
+        this.dbUser = dbUser;
+    }
+
+    public String getDbPassword() {
+        return dbPassword;
+    }
+
+    public void setDbPassword(String dbPassword) {
+        this.dbPassword = dbPassword;
+    }
+
+    public String getUserTable() {
+        return userTable;
+    }
+
+    public void setUserTable(String userTable) {
+        this.userTable = userTable;
+    }
+
+    public String getUserColumn() {
+        return userColumn;
+    }
+
+    public void setUserColumn(String userColumn) {
+        this.userColumn = userColumn;
+    }
+
+    public String getPassColumn() {
+        return passColumn;
+    }
+
+    public void setPassColumn(String passColumn) {
+        this.passColumn = passColumn;
+    }
+
+    public String getSaltColumn() {
+        return saltColumn;
+    }
+
+    public void setSaltColumn(String saltColumn) {
+        this.saltColumn = saltColumn;
+    }
+
+    public String getLastLoginColumn() {
+        return lastLoginColumn;
+    }
+
+    public void setLastLoginColumn(String lastLoginColumn) {
+        this.lastLoginColumn = lastLoginColumn;
+    }
+
+    public String getWhere() {
+        return where;
+    }
+
+    public void setWhere(String where) {
+        this.where = where;
+    }
+
+	@Override
 	public void initialize(Subject subject, CallbackHandler callbackHandler, Map<String, ?> sharedState,
 			Map<String, ?> options) {
 		super.initialize(subject, callbackHandler, sharedState, options);
-
-		dbDriver = getOption("dbDriver", null);
+	
+		String dbDriver = getOption("dbDriver", null);
 		if (dbDriver == null)
 			throw new Error("No database driver named (dbDriver=?)");
-		dbURL = getOption("dbURL", null);
+		setDbDriver(dbDriver);
+	
+		String dbURL = getOption("dbURL", null);
 		if (dbURL == null)
 			throw new Error("No database URL specified (dbURL=?)");
-		dbUser = getOption("dbUser", null);
-		dbPassword = getOption("dbPassword", null);
+		setDbURL(dbURL);
+	
+		String dbUser = getOption("dbUser", null);
+		setDbUser(dbUser);
+	
+		String dbPassword = getOption("dbPassword", null);
+		setDbPassword(dbPassword);
+	
 		if ((dbUser == null && dbPassword != null) || (dbUser != null && dbPassword == null))
 			throw new Error("Either provide dbUser and dbPassword or encode both in dbURL");
-
-		userTable       = getOption("userTable",       "User");
-		userColumn      = getOption("userColumn",      "user_name");
-		passColumn      = getOption("passColumn",      "user_passwd");
-		saltColumn      = getOption("saltColumn",      "");
-		lastLoginColumn	= getOption("lastLoginColumn", "");
-		where           = getOption("where",           "");
-
-		if (null != where && where.length() > 0)
-			where = " AND " + where;
+	
+		setUserTable(getOption("userTable", "User"));
+		setUserColumn(getOption("userColumn", "user_name"));
+		setPassColumn(getOption("passColumn", "user_passwd"));
+		setSaltColumn(getOption("saltColumn", ""));
+		setLastLoginColumn(getOption("lastLoginColumn", ""));
+		setWhere(getOption("where", ""));
+	
+		if (getWhere() != null && getWhere().length() > 0)
+			setWhere(" AND " + getWhere());
 		else
-			where = "";
-
-		// Initialize the database connection
-		try {
-			Class.forName(dbDriver);
-
-			if (dbUser != null)
-				connection = DriverManager.getConnection(dbURL, dbUser, dbPassword);
-			else
-				connection = DriverManager.getConnection(dbURL);
-		} catch (ClassNotFoundException | SQLException e) {
-			throw new Error("Failed to initialize database connection", e);
-		}
-	}
-
-	public void closeConnection() {
-		if (connection != null) {
-			try {
-				connection.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-				throw new Error("Error closing database connection (" + e.getMessage() + ")");
-			}
-		}
+			setWhere("");
 	}
 
 	protected synchronized Vector<TypedPrincipal> validateUser(String username, char password[]) throws LoginException {
-		try {
+		try (Connection connection = DriverManager.getConnection(dbURL, dbUser, dbPassword)) {
 			// Retrieve the stored hashed password from the database
-			String[] passwordData = getPasswordFromDatabase(username);
+			String[] passwordData = getPasswordFromDatabase(connection, username);
 			String storedHash = passwordData[0];
 			String salt = passwordData[1];
 	
@@ -108,7 +173,7 @@ public class DBLogin extends SimpleLogin {
 						passwordBytes = new String(password).getBytes();
 						String newSalt = PasswordUtils.SHA512_PREFIX + "rounds=" + PasswordUtils.SHA512_ROUNDS + "$" + Utils.generateRandomSalt();
 						String newHash = PasswordUtils.hashPassword(passwordBytes, newSalt, hashAlgorithm);
-						updateStoredPassword(username, newHash);
+						updateStoredPassword(connection, username, newHash);
 					}
 				}
 			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
@@ -117,18 +182,16 @@ public class DBLogin extends SimpleLogin {
 
 			// If password is valid, update the last login timestamp
 			if (!lastLoginColumn.equals(""))
-				updateLastLogin(username);
+				updateLastLogin(connection, username);
 	
 			Vector<TypedPrincipal> p = new Vector<>();
 			return p;
 		} catch (SQLException e) {
 			throw new LoginException("Error reading user database (" + e.getMessage() + ")");
-		} finally {
-            closeConnection(); // Ensure the connection is closed
 		}
 	}
 
-	private String[] getPasswordFromDatabase(String username) throws SQLException, FailedLoginException, LoginException {
+	private String[] getPasswordFromDatabase(Connection connection, String username) throws SQLException, FailedLoginException, LoginException {
 		String sql = new String();
 		sql = "SELECT " + passColumn + (!saltColumn.equals("") ? ("," + saltColumn) : "") + " FROM " + userTable +
 				" WHERE " + userColumn + "=?" + where;
@@ -155,7 +218,7 @@ public class DBLogin extends SimpleLogin {
 		}
 	}
 
-	private void updateStoredPassword(String username, String passwordHash) throws SQLException{
+	private void updateStoredPassword(Connection connection, String username, String passwordHash) throws SQLException{
 		logger.debug("Updating password for user: " + username);
 
 		// SQL statement to update the password and salt columns
@@ -171,7 +234,7 @@ public class DBLogin extends SimpleLogin {
 		}
 	}
 
-	private void updateLastLogin(String username) throws SQLException {
+	private void updateLastLogin(Connection connection, String username) throws SQLException {
 		logger.debug("Updating last login for user: " + username);
 
 		// SQL statement to update the last_login column

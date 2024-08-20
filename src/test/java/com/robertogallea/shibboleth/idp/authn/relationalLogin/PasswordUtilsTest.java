@@ -18,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class PasswordUtilsTest {
 
+    private static final String TEST_PASSWORD = "password123";
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -25,10 +27,9 @@ public class PasswordUtilsTest {
 
     @Test
     public void testHashPasswordWithBCrypt() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = BCrypt.gensalt();
         System.err.println("bcrypt salt: " + salt);
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "bcrypt");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "bcrypt");
         System.err.println("bcrypt hashedPassword: " + hashedPassword);
 
         assertNotNull(hashedPassword, "Hashed password should not be null");
@@ -37,11 +38,10 @@ public class PasswordUtilsTest {
 
     @Test
     public void testHashPasswordWithCryptSha512() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = PasswordUtils.SHA512_PREFIX + "rounds=" + PasswordUtils.SHA512_ROUNDS + "$"
                 + DigestUtils.sha512Hex("salt");
         System.err.println("sha512 crypt salt: " + salt);
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "crypt");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "crypt");
         System.err.println("sha512 crypt hashedPassword: " + hashedPassword);
 
         assertNotNull(hashedPassword, "Hashed password should not be null");
@@ -50,11 +50,10 @@ public class PasswordUtilsTest {
 
     @Test
     public void testHashPasswordWithCryptSha256() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = PasswordUtils.SHA256_PREFIX + "rounds=" + PasswordUtils.SHA256_ROUNDS + "$"
                 + DigestUtils.sha256Hex("salt");
         System.err.println("sha256 crypt salt: " + salt);
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "crypt");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "crypt");
         System.err.println("sha256 crypt hashedPassword: " + hashedPassword);
 
         assertNotNull(hashedPassword, "Hashed password should not be null");
@@ -63,10 +62,9 @@ public class PasswordUtilsTest {
 
     @Test
     public void testHashPasswordWithCryptMd5() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = PasswordUtils.MD5_PREFIX + DigestUtils.md5Hex("salt");
         System.err.println("md5 crypt salt: " + salt);
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "crypt");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "crypt");
         System.err.println("md5 crypt hashedPassword: " + hashedPassword);
 
         assertNotNull(hashedPassword, "Hashed password should not be null");
@@ -75,10 +73,9 @@ public class PasswordUtilsTest {
 
     @Test
     public void testHashPasswordWithCryptDES() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = generateDESSalt();
         System.err.println("DES crypt salt: " + salt);
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "crypt");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "crypt");
         System.err.println("DES crypt hashedPassword: " + hashedPassword);
 
         assertNotNull(hashedPassword, "Hashed password should not be null");
@@ -87,12 +84,11 @@ public class PasswordUtilsTest {
 
     @Test
     public void testHashPasswordWithSha512() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = DigestUtils.sha512Hex("salt");
         System.err.println("sha512 salt: " + salt);
 
         // Call hashPassword with SHA-512 algorithm
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "SHA-512");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "SHA-512");
         System.err.println("sha512 hashedPassword: " + hashedPassword);
 
         // Verify that the hashed password is not null
@@ -101,12 +97,11 @@ public class PasswordUtilsTest {
 
     @Test
     public void testHashPasswordWithSha256() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = DigestUtils.sha256Hex("salt");
         System.err.println("sha256 salt: " + salt);
 
         // Call hashPassword with SHA-256 algorithm
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "SHA-256");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "SHA-256");
         System.err.println("sha256 hashedPassword: " + hashedPassword);
 
         // Verify that the hashed password is not null
@@ -115,12 +110,11 @@ public class PasswordUtilsTest {
 
     @Test
     public void testHashPasswordWithSha1() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = DigestUtils.sha1Hex("salt");
         System.err.println("sha1 salt: " + salt);
 
         // Call hashPassword with SHA-1 algorithm
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "SHA-1");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "SHA-1");
         System.err.println("sha1 hashedPassword: " + hashedPassword);
 
         // Verify that the hashed password is not null
@@ -129,117 +123,107 @@ public class PasswordUtilsTest {
 
     @Test
     public void testHashPasswordWithInvalidAlgorithm() {
-        String password = "password123";
         String salt = "salt";
 
         assertThrows(NoSuchAlgorithmException.class, () -> {
-            PasswordUtils.hashPassword(password.getBytes(), salt, "invalidAlgorithm");
+            PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "invalidAlgorithm");
         });
     }
 
     @Test
     public void testCheckPasswordWithBCrypt() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = BCrypt.gensalt();
-        String hashedPassword = BCrypt.hashpw(password, salt);
+        String hashedPassword = BCrypt.hashpw(TEST_PASSWORD, salt);
 
-        assertTrue(PasswordUtils.checkPassword(password.getBytes(), hashedPassword, salt, "bcrypt"),
+        assertTrue(PasswordUtils.checkPassword(TEST_PASSWORD.getBytes(), hashedPassword, salt, "bcrypt"),
                 "Passwords should match");
     }
 
     @Test
     public void testCheckPasswordWithCryptSha512() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = PasswordUtils.SHA512_PREFIX + "rounds=" + PasswordUtils.SHA512_ROUNDS + "$"
                 + DigestUtils.sha512Hex("salt");
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "crypt");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "crypt");
 
-        assertTrue(PasswordUtils.checkPassword(password.getBytes(), hashedPassword, salt, "crypt"),
+        assertTrue(PasswordUtils.checkPassword(TEST_PASSWORD.getBytes(), hashedPassword, salt, "crypt"),
                 "Passwords should match");
     }
 
     @Test
     public void testCheckPasswordWithCryptSha256() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = PasswordUtils.SHA256_PREFIX + "rounds=" + PasswordUtils.SHA256_ROUNDS + "$"
                 + DigestUtils.sha512Hex("salt");
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "crypt");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "crypt");
 
-        assertTrue(PasswordUtils.checkPassword(password.getBytes(), hashedPassword, salt, "crypt"),
+        assertTrue(PasswordUtils.checkPassword(TEST_PASSWORD.getBytes(), hashedPassword, salt, "crypt"),
                 "Passwords should match");
     }
 
     @Test
     public void testCheckPasswordWithCryptMd5() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = PasswordUtils.MD5_PREFIX + DigestUtils.md5Hex("salt");
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "crypt");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "crypt");
 
-        assertTrue(PasswordUtils.checkPassword(password.getBytes(), hashedPassword, salt, "crypt"),
+        assertTrue(PasswordUtils.checkPassword(TEST_PASSWORD.getBytes(), hashedPassword, salt, "crypt"),
                 "Passwords should match");
     }
 
     @Test
     public void testCheckPasswordWithCryptDES() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = PasswordUtils.MD5_PREFIX + DigestUtils.md5Hex("salt");
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "crypt");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "crypt");
 
-        assertTrue(PasswordUtils.checkPassword(password.getBytes(), hashedPassword, salt, "crypt"),
+        assertTrue(PasswordUtils.checkPassword(TEST_PASSWORD.getBytes(), hashedPassword, salt, "crypt"),
                 "Passwords should match");
     }
 
     @Test
     public void testCheckPasswordWithCleartext() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
-        String storedPassword = "password123";
+        String storedPassword = TEST_PASSWORD;
 
-        assertTrue(PasswordUtils.checkPassword(password.getBytes(), storedPassword, "", ""),
+        assertTrue(PasswordUtils.checkPassword(TEST_PASSWORD.getBytes(), storedPassword, "", ""),
                 "Passwords should match");
     }
 
     @Test
     public void testCheckPasswordWithSha512() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = DigestUtils.sha512Hex("salt");
         System.err.println("sha512 salt: " + salt);
 
         // Call hashPassword with SHA-512 algorithm
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "SHA-512");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "SHA-512");
         System.err.println("sha512 hashedPassword: " + hashedPassword);
 
         // Verify that the hashed password is not null
-        assertTrue(PasswordUtils.checkPassword(password.getBytes(), hashedPassword, salt, "SHA-512"),
+        assertTrue(PasswordUtils.checkPassword(TEST_PASSWORD.getBytes(), hashedPassword, salt, "SHA-512"),
                 "Passwords should match");
     }
 
     @Test
     public void testCheckPasswordWithSha256() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = DigestUtils.sha256Hex("salt");
         System.err.println("sha256 salt: " + salt);
 
         // Call hashPassword with SHA-256 algorithm
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "SHA-256");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "SHA-256");
         System.err.println("sha256 hashedPassword: " + hashedPassword);
 
         // Verify that the hashed password is not null
-        assertTrue(PasswordUtils.checkPassword(password.getBytes(), hashedPassword, salt, "SHA-256"),
+        assertTrue(PasswordUtils.checkPassword(TEST_PASSWORD.getBytes(), hashedPassword, salt, "SHA-256"),
                 "Passwords should match");
     }
 
     @Test
     public void testCheckPasswordWithSha1() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "password123";
         String salt = DigestUtils.sha1Hex("salt");
         System.err.println("sha1 salt: " + salt);
 
         // Call hashPassword with SHA-1 algorithm
-        String hashedPassword = PasswordUtils.hashPassword(password.getBytes(), salt, "SHA-1");
+        String hashedPassword = PasswordUtils.hashPassword(TEST_PASSWORD.getBytes(), salt, "SHA-1");
         System.err.println("sha1 hashedPassword: " + hashedPassword);
 
         // Verify that the hashed password is not null
-        assertTrue(PasswordUtils.checkPassword(password.getBytes(), hashedPassword, salt, "SHA-1"),
+        assertTrue(PasswordUtils.checkPassword(TEST_PASSWORD.getBytes(), hashedPassword, salt, "SHA-1"),
                 "Passwords should match");
     }
 

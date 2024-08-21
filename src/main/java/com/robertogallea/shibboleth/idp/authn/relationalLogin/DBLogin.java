@@ -204,7 +204,7 @@ public class DBLogin extends SimpleLogin {
 
 			Vector<TypedPrincipal> p = new Vector<>();
 			p.add(new TypedPrincipal(username, TypedPrincipal.USER));
-			System.err.println("p: " + p.toString());
+			logger.debug("p: " + p.toString());
 			return p;
 
 		} catch (SQLException e) {
@@ -298,6 +298,8 @@ public class DBLogin extends SimpleLogin {
 			case "SQLServer":
 				sql = "UPDATE " + userTable + " SET " + lastLoginColumn + " = GETDATE() WHERE " + userColumn + " = ?";
 				break;
+			case "h2":
+				sql = "UPDATE " + userTable + " SET " + lastLoginColumn + " = CURRENT_TIMESTAMP() WHERE " + userColumn + " = ?";
 			default:
 				throw new UnsupportedOperationException("Unsupported DBMS: " + dbType);
 		}
@@ -319,6 +321,8 @@ public class DBLogin extends SimpleLogin {
 			return "SQLServer";
 		} else if (driverName.contains("sqlite")) {
 			return "SQLite";
+		} else if (driverName.contains("h2")) {
+			return "h2";
 		} else {
 			throw new UnsupportedOperationException("Unsupported DBMS: " + driverName);
 		}

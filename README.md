@@ -135,24 +135,24 @@ For details and instruction, please visit http://www.robertogallea.com/blog/shib
 
 ## Verify the contents of the generated JAR file
 ```
-jar tf target/jaas_relational_login-2.0-SNAPSHOT.jar
+jar tf target/jaas_relational_login-1.1.0-SNAPSHOT.jar
 ```
 
 ### Run the Java application using the generated JAR file
 ```
-java -cp target/jaas_relational_login-2.0.0-SNAPSHOT.jar:lib/mysql-connector-j-8.3.0.jar:lib/spring-security-crypto-5.1.3.RELEASE.jar:lib/commons-logging-1.3.3.jar:lib/commons-codec-1.16.1.jar -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml edu.umich.its.iam.shibboleth.idp.authn.sample.SampleAcn
+java -cp target/jaas_relational_login-1.1.0-SNAPSHOT.jar:lib/mysql-connector-j-8.3.0.jar:lib/spring-security-crypto-5.1.3.RELEASE.jar:lib/commons-logging-1.3.3.jar:lib/commons-codec-1.16.1.jar -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
 ```
 
 ## THIS SEEMS LESS ANNOYING?
 ```
 mvn dependency:build-classpath -Dmdep.outputFile=classpath.txt
 
-java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes" \
+java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes:target/test-classes" \
   -Djava.security.auth.login.config=config/jaas.config \
   -Dlogback.configurationFile=config/logback.xml \
-  edu.umich.its.iam.shibboleth.idp.authn.sample.SampleAcn
+  sample.SampleAcn
 ```
 or
 ```
-jaas_relational_login % java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes" -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml edu.umich.its.iam.shibboleth.idp.authn.sample.SampleAcn
+jaas_relational_login % java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes:target/test-classes" -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
 ```

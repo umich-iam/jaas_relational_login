@@ -1,5 +1,5 @@
 // $Id: TypedPrincipal.java,v 1.7 2003/02/17 20:13:23 andy Exp $
-package com.robertogallea.shibboleth.idp.authn.relationalLogin;
+package edu.umich.its.iam.shibboleth.idp.authn.relationalLogin;
 
 import java.io.*;
 import java.security.Principal;
@@ -12,6 +12,9 @@ import java.security.Principal;
  *
  * @author Andy Armstrong
  * @version 1.0.3
+ * 
+ * Note: Namespace changed to edu.umich.it.iam.shibboleth.idp.authn.relationalLogin for organizational purposes.
+ * 
  */
 public class TypedPrincipal implements Principal, Serializable
 {

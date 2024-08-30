@@ -1,5 +1,5 @@
 // $Id: DBLogin.java,v 1.5 2003/02/17 20:13:23 andy Exp $
-package com.robertogallea.shibboleth.idp.authn.relationalLogin;
+package edu.umich.its.iam.shibboleth.idp.authn.relationalLogin;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -15,9 +15,27 @@ import org.slf4j.LoggerFactory;
 /**
  * Simple database based authentication module.
  *
- * @author Andy Armstrong, <A HREF="mailto:andy@tagish.com">andy@tagish.com</A>
- * @version 1.0.3
+ * Originally authored by Andy Armstrong, <A HREF="mailto:andy@tagish.com">andy@tagish.com</A>
+ * Modified and extended by Roberto Gallea
+ * Further modifications by ITS Identity and Access Management, University of Michigan <its.iam.infrastructure.developers@umich.edu>
+ * @version 1.1.0
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * Note: Namespace changed to edu.umich.it.iam.shibboleth.idp.authn.relationalLogin for organizational purposes.
  */
+
 public class DBLogin extends SimpleLogin {
 	private String dbDriver;
 	private String dbURL;
@@ -189,7 +207,7 @@ public class DBLogin extends SimpleLogin {
 						// Update the stored password with the new hash and salt
 						passwordBytes = new String(password).getBytes();
 						String newSalt = PasswordUtils.SHA512_PREFIX + "rounds=" + PasswordUtils.SHA512_ROUNDS + "$"
-								+ Utils.generateRandomSalt();
+								+ PasswordUtils.generateRandomSalt();
 						String newHash = PasswordUtils.hashPassword(passwordBytes, newSalt, hashAlgorithm);
 						updateStoredPassword(connection, username, newHash);
 					}

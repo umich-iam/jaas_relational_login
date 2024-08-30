@@ -1,15 +1,35 @@
-package com.robertogallea.shibboleth.idp.authn.relationalLogin;
+package edu.umich.its.iam.shibboleth.idp.authn.relationalLogin;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 
 import org.apache.commons.codec.digest.Crypt;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+/**
+ * Utility class for password-related operations, such as hashing and salt generation.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * Note: Namespace changed to edu.umich.it.iam.shibboleth.idp.authn.relationalLogin for organizational purposes.
+ */
 
 
 public class PasswordUtils {
@@ -76,4 +96,16 @@ public class PasswordUtils {
             throw new IllegalArgumentException("Unknown hash algorithm");
         }
     }
+
+	// Generate a random salt for SHA-256 / SHA-512 crypt
+	public static String generateRandomSalt() {
+		SecureRandom random = new SecureRandom();
+		byte[] salt = new byte[16];
+		random.nextBytes(salt);
+		StringBuilder sb = new StringBuilder();
+		for (byte b : salt) {
+			sb.append(String.format("%02x", b));
+		}
+		return sb.toString();
+	}
 }

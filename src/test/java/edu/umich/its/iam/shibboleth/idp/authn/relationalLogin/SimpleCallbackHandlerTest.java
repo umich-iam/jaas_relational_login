@@ -1,4 +1,4 @@
-package com.robertogallea.shibboleth.idp.authn.relationalLogin;
+package edu.umich.its.iam.shibboleth.idp.authn.relationalLogin;
 
 import org.junit.jupiter.api.Test;
 import javax.security.auth.callback.*;

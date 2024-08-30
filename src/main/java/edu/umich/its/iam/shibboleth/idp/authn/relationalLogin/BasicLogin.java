@@ -1,5 +1,5 @@
 // $Id: BasicLogin.java,v 1.5 2003/02/17 20:13:23 andy Exp $
-package com.robertogallea.shibboleth.idp.authn.relationalLogin;
+package edu.umich.its.iam.shibboleth.idp.authn.relationalLogin;
 
 import javax.security.auth.spi.LoginModule;
 import javax.security.auth.Subject;
@@ -14,6 +14,11 @@ import java.util.Map;
  *
  * @author Andy Armstrong, <A HREF="mailto:andy@tagish.com">andy@tagish.com</A>
  * @version 1.0.3
+ * 
+ * Minor changes by ITS IAM Infrastructure Developers, University of Michigan
+ * Added typing to variable declarations. 
+ * Changed namespace to edu.umich.it.iam.shibboleth.idp.authn.relationalLogin for organizational purposes.
+ * 
  */
 public abstract class BasicLogin implements LoginModule
 {

@@ -66,7 +66,7 @@ Create or replace the file jaas.config under /conf/authn using the following con
 /** Login Configuration for the JAAS Sample Application **/
 
 ShibUserPassAuth  {
-   com.robertogallea.shibboleth.idp.relationalLogin.DBLogin required debug=true
+   edu.umich.its.iam.shibboleth.idp.authn.relationalLogin.DBLogin required debug=true
    dbDriver="oracle.jdbc.driver.OracleDriver"
    userTable="userTableName"
    userColumn="username"

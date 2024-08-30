@@ -1,4 +1,4 @@
-package relationalLogin;
+package edu.umich.its.iam.shibboleth.idp.authn.relationalLogin;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;

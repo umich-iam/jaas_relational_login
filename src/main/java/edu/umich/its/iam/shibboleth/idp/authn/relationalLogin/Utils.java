@@ -1,10 +1,7 @@
 // $Id: Utils.java,v 1.5 2003/02/17 20:13:23 andy Exp $
-package relationalLogin;
+package edu.umich.its.iam.shibboleth.idp.authn.relationalLogin;
 
 import java.security.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Utility methods for com.tagish.auth.*. All the methods in here are static
@@ -17,13 +14,6 @@ public class Utils
 {
 	private final static String     ALGORITHM   = "MD5";
 	private static MessageDigest    md = null;
-
-	private static final Logger logger = LoggerFactory.getLogger(Utils.class);
-
-	static {
-        // Static initializer block for SLF4J
-        logger.info("SLF4J Logger initialized in Utils class");
-    }
 
 	/**
 	 * Can't make these: all the methods are static

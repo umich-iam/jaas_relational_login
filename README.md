@@ -5,6 +5,8 @@ The information in README.md has additional information about updated features.
 
 [The original documentation can be found here](https://robertogallea.com/posts/development/shibboleth-using-relational-dbms-as-authentication-backend)
 
+_**NOTE:** This code seems to be heavily influenced by the [tagish-jaas](https://github.com/chriseldredge/tagish-jaas/tree/master).  I think the original repository is gone - the tagish.com domain seems to be for sale, and the only copy of the code I found looks like it started as a fork?_
+
 Natively, Shibboleth supports a variety of authentication methods, among those the most general (and default) is Password-based authentication. It performs a username-password pair check against a user backend. The backend could be provided in many ways. Off the shelves Shibboleth provides following:
 
 * LDAP-based, uses an LDAP source;
@@ -23,6 +25,7 @@ This guide shows you how to implement JAAS authetication for Shibboleth using a 
 This guide assumes the following:
 
 * Familiarity with Shibboleth IDP.
+  * _**NOTE:** This code was originally written for IDP v3, but we've used it with v4 and v5 at UMich, and the URL references to Shibboleth documentation have been made current_
 * You have a Shibboleth IDP installation already running on your system. If not, refer to official installation instructions at [Shibboleth Identity Provider 5 / DeployerResources / Installation](https://shibboleth.atlassian.net/wiki/spaces/IDP5/pages/3199500577/Installation).
 * You have a relational database of your choice containing a user table with username and (hashed) password columns, as follows (column names maybe different)
 
@@ -45,7 +48,7 @@ Build it to obtain a jar archive, that has to be deployed to your shibboleth IDP
 ## JAAS Custom Class Deployment
 After building the JAAS module, you are required to deploy to the IDP application, in order to make it available for use. This is accomplished following some steps:
 
-1) Copy the archive JAAS_relational_login.jar under /edit-webapp/WEB-INF/lib
+1) Copy the archive jaas_relational_login-2.0.0.jar under /edit-webapp/WEB-INF/lib
 2) Download the JDBC driver for your DBMS, for example, for Oracle is ojdbc7.jar and copy it under /edit-webapp/WEB-INF/lib
 3) Run /bin/build.sh script to rebuild the IDP web application
 4) If required, deploy the newly built application into your container (tomcat, jetty, IIs, etc.)
@@ -86,7 +89,7 @@ edit it as required including the relevant data according to your DBMS configura
 
 **Note3**: available hashing algorithms are DBMS native hashing functions (e.g. SHA-1, SHA-256), bcrypt, and GNU crypt compatible hashes (SHA-512, SHA-256, MD5, DES)
 
-**Note4**: if you set **hashAlgorithm** to `crypt`, you need to set saltColumn to the same value you provide for **passwordColum**.  crypted strings contain the salt.
+**Note4**: if you set **hashAlgorithm** to `bcrypt` or `crypt`, you need to set saltColumn to the same value you provide for **passwordColum**.  crypted strings contain the salt.
 
 **Note5**: if your database credential has write access to the userTable, and you provide a value for lastLoginColumn, the timestamp of the user's login will be stored
 
@@ -125,21 +128,31 @@ JAAS module for authenticating against a relational DBMS
 For details and instruction, please visit http://www.robertogallea.com/blog/shibboleth_using_relational_dbms_as_authentication_backend
 
 ## Navigate to the project root directory
-cd path/to/my-java-project
+`cd path/to/my-java-project`
 
 ## Build the project using Maven
-mvn package
+`mvn package`
 
 ## Verify the contents of the generated JAR file
-jar tf target/jaas_relational_login-0.0.1-SNAPSHOT.jar
+```
+jar tf target/jaas_relational_login-1.1.0-SNAPSHOT.jar
+```
 
 ### Run the Java application using the generated JAR file
-java -cp target/jaas_relational_login-0.0.1-SNAPSHOT.jar:lib/mysql-connector-j-8.3.0.jar:lib/spring-security-crypto-5.1.3.RELEASE.jar:lib/commons-logging-1.3.3.jar:lib/commons-codec-1.16.1.jar -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
+```
+java -cp target/jaas_relational_login-1.1.0-SNAPSHOT.jar:lib/mysql-connector-j-8.3.0.jar:lib/spring-security-crypto-5.1.3.RELEASE.jar:lib/commons-logging-1.3.3.jar:lib/commons-codec-1.16.1.jar -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
+```
 
 ## THIS SEEMS LESS ANNOYING?
+```
 mvn dependency:build-classpath -Dmdep.outputFile=classpath.txt
-java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes" \
+
+java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes:target/test-classes" \
   -Djava.security.auth.login.config=config/jaas.config \
   -Dlogback.configurationFile=config/logback.xml \
   sample.SampleAcn
-
+```
+or
+```
+jaas_relational_login % java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes:target/test-classes" -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
+```

@@ -42,6 +42,7 @@ package sample;
 import java.io.*;
 import java.util.*;
 import javax.security.auth.login.*;
+import javax.security.auth.*;
 import javax.security.auth.callback.*;
 
 /**
@@ -77,23 +78,24 @@ public class SampleAcn {
         }
 
         
-        if (lc != null) {
-            try {
-                // attempt authentication
-                lc.login();
-            } catch (LoginException le) {
-                System.err.println("Authentication failed:");
-                System.err.println("  " + le.getMessage());
-                System.exit(-1);
-            }
+        try {
 
-            System.out.println("1Authentication succeeded!");
+            // attempt authentication
+            lc.login();
+
+
+        } catch (LoginException le) {
+
+              System.err.println("Authentication failed:");
+              System.err.println("  " + le.getMessage());
+              System.exit(-1);
+
         }
         
 
         
 
-        System.out.println("2Authentication succeeded!");
+        System.out.println("Authentication succeeded!");
 
     }
 }
@@ -176,6 +178,7 @@ class MyCallbackHandler implements CallbackHandler {
 
         char[] lineBuffer;
         char[] buf;
+        int i;
 
         buf = lineBuffer = new char[128];
 

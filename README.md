@@ -154,5 +154,6 @@ java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes:ta
 ```
 or
 ```
+mvn test-compile
 jaas_relational_login % java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes:target/test-classes" -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
 ```

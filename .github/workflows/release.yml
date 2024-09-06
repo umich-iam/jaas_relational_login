@@ -33,12 +33,16 @@ jobs:
         draft: false
         prerelease: false
 
+    - name: Extract Tag Name
+      id: extract_tag
+      run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
     - name: Upload JAR file
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: target/your-artifact.jar
-        asset_name: your-artifact.jar
+        asset_path: target/jaas_relational_login-${{ env.TAG_NAME }}.jar
+        asset_name: jaas_relational_login-${{ env.TAG_NAME }}.jar
         asset_content_type: application/java-archive

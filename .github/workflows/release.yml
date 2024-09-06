@@ -1,0 +1,108 @@
+name: Build and Release JAR
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like 'v1.*'
+
+permissions:
+  contents: write  # Grant write permissions to contents, which includes releases
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}  # Output version for later jobs
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}i
+
+      # Step 2: Set up Java (Maven will be using Java)
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'  # Or adopt, zulu depending on the JDK distribution
+          java-version: '17'  # Change to the version of Java your project uses
+
+      # Step 3: Build the project using Maven
+      - name: Build with Maven
+        run: mvn clean package
+
+      # Step 4: Extract the version from pom.xml
+      - name: Extract version from pom.xml
+        id: extract_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Project version: $VERSION"
+          echo "::set-output name=version::$VERSION"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      # Step 5: Upload the JAR as an artifact
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: jaas_relational_login-${{ env.VERSION }}
+          path: target/jaas_relational_login-${{ env.VERSION }}.jar
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.build.outputs.version }}  # Set the VERSION environment variable
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 1: Download the JAR artifact from the build job
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: jaas_relational_login-${{ needs.build.outputs.version }}
+          path: ./downloaded_artifact  # Specify the download path
+
+      # Step 2: Check if a release exists and delete it if necessary
+      - name: Check and Delete Existing Release
+        id: check_release
+        run: |
+          TAG=${GITHUB_REF##*/}
+          RELEASE_ID=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG | jq -r '.id')
+          if [ "$RELEASE_ID" != "null" ]; then
+            echo "Release with tag $TAG exists. Deleting release."
+            curl -X DELETE \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID
+          else
+            echo "No existing release for tag $TAG."
+          fi
+
+      # Step 3: Create a GitHub release
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.build.outputs.version }}  # Create a release tag matching the version from pom.xml
+          release_name: Release v${{ needs.build.outputs.version }}
+          draft: false
+          prerelease: false
+
+      # Step 4: Upload the JAR to the release
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./downloaded_artifact/jaas_relational_login-${{ needs.build.outputs.version }}.jar
+          asset_name: jaas_relational_login-${{ needs.build.outputs.version }}.jar
+          asset_content_type: application/java-archive

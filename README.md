@@ -143,3 +143,10 @@ java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes" \
   -Dlogback.configurationFile=config/logback.xml \
   sample.SampleAcn
 
+
+## TAGGING
+git tag -d v1.1.0-SNAPSHOT
+git push origin --delete v1.1.0-SNAPSHOT
+
+git tag v1.1.0-SNAPSHOT
+git push origin v1.1.0-SNAPSHOT

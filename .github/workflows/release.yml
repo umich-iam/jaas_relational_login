@@ -37,6 +37,49 @@ jobs:
       id: extract_tag
       run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+    - name: Check if Release Exists
+      id: check_release
+      uses: actions/github-script@v3
+      with:
+        script: |
+          const { data: releases } = await github.repos.listReleases({
+            owner: context.repo.owner,
+            repo: context.repo.repo
+          });
+          const release = releases.find(release => release.tag_name === process.env.TAG_NAME);
+          return release ? release.id : null;
+
+    - name: Create or Update Release
+      id: create_update_release
+      uses: actions/github-script@v3
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        script: |
+          const release_id = ${{ steps.check_release.outputs.result }};
+          if (release_id) {
+            // Update existing release
+            await github.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release_id,
+              tag_name: process.env.TAG_NAME,
+              name: `Release ${process.env.TAG_NAME}`,
+              draft: false,
+              prerelease: false
+            });
+          } else {
+            // Create new release
+            await github.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: process.env.TAG_NAME,
+              name: `Release ${process.env.TAG_NAME}`,
+              draft: false,
+              prerelease: false
+            });
+          }
+          
     - name: Upload JAR file
       uses: actions/upload-release-asset@v1
       env:

@@ -22,17 +22,6 @@ jobs:
     - name: Build with Maven
       run: mvn clean package
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-
     - name: Extract Tag Name
       id: extract_tag
       run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
@@ -57,9 +46,10 @@ jobs:
       with:
         script: |
           const release_id = ${{ steps.check_release.outputs.result }};
+          let upload_url;
           if (release_id) {
             // Update existing release
-            await github.repos.updateRelease({
+            const { data: release } = await github.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: release_id,
@@ -68,9 +58,10 @@ jobs:
               draft: false,
               prerelease: false
             });
+            upload_url = release.upload_url;
           } else {
             // Create new release
-            await github.repos.createRelease({
+            const { data: release } = await github.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: process.env.TAG_NAME,
@@ -78,14 +69,16 @@ jobs:
               draft: false,
               prerelease: false
             });
+            upload_url = release.upload_url;
           }
-          
+          return { upload_url };
+
     - name: Upload JAR file
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ steps.create_update_release.outputs.upload_url }}
         asset_path: target/jaas_relational_login-${{ env.TAG_NAME }}.jar
         asset_name: jaas_relational_login-${{ env.TAG_NAME }}.jar
         asset_content_type: application/java-archive

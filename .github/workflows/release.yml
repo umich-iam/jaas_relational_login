@@ -58,6 +58,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: jaas_relational_login-${{ needs.build.outputs.version }}
+          path: ./downloaded_artifact  # Specify the download path
 
       # Step 2: Check if a release exists and delete it if necessary
       - name: Check and Delete Existing Release
@@ -93,6 +94,6 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./target/jaas_relational_login-${{ needs.build.outputs.version }}.jar
+          asset_path: ./downloaded_artifact/jaas_relational_login-${{ needs.build.outputs.version }}.jar
           asset_name: jaas_relational_login-${{ needs.build.outputs.version }}.jar
           asset_content_type: application/java-archive

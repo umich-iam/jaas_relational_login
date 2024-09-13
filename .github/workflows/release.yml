@@ -33,6 +33,7 @@ jobs:
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "Project version: $VERSION"
+          echo "::set-output name=version::$VERSION"
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       # Step 5: Rename the JAR file to include the version from pom.xml
@@ -91,7 +92,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v3
         with:
-          name: jaas_relational_login-${{ env.VERSION }}
+          name: jaas_relational_login-${{ needs.build.outputs.version }}
 
       # Step 2: Create a GitHub release
       - name: Create GitHub Release
@@ -100,8 +101,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.VERSION }}  # Create a release tag matching the version from pom.xml
-          release_name: Release v${{ env.VERSION }}
+          tag_name: v${{ needs.build.outputs.version }}  # Create a release tag matching the version from pom.xml
+          release_name: Release v${{ needs.build.outputs.version }}
           draft: false
           prerelease: false
 
@@ -110,6 +111,6 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./target/jaas_relational_login-${{ env.VERSION }}.jar
-          asset_name: jaas_relational_login-${{ env.VERSION }}.jar
+          asset_path: ./target/jaas_relational_login-${{ needs.build.outputs.version }}.jar
+          asset_name: jaas_relational_login-${{ needs.build.outputs.version }}.jar
           asset_content_type: application/java-archive

@@ -70,8 +70,13 @@ public class PasswordUtils {
             return storedHash.equals(new String(password));
         }
 
-        if (algorithm.equalsIgnoreCase("crypt")) {
-            logger.debug("checkPassword() crypt algorithm: " + whichCryptAlgorithm(storedHash));
+        try {
+            if (algorithm.equalsIgnoreCase("crypt")) {
+                logger.debug("checkPassword() crypt algorithm: " + whichCryptAlgorithm(storedHash));
+            }
+        } catch (IllegalArgumentException e) {
+            logger.error("checkPassword() " + e.getMessage());
+            return false;
         }
 
         String hashedPassword = hashPassword(password, salt, algorithm);
@@ -80,6 +85,7 @@ public class PasswordUtils {
         return isMatch;
     }
 
+    // This is used for logging and test cases and could probably be removed
     private static String whichCryptAlgorithm (String storedHash) throws IllegalArgumentException {
         if (storedHash.startsWith(SHA512_PREFIX)) {
             return "SHA-512";

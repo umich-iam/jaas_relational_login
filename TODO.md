@@ -1,1 +1,2 @@
-[ ] fix support for cleartext passwords
+[x] fix support for cleartext passwords
+[ ] build project artifact using github actions

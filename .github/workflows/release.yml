@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}  # Output version for later jobs
 
     steps:
       # Step 1: Checkout the repository
@@ -78,6 +80,8 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.build.outputs.version }}  # Set the VERSION environment variable
 
     steps:
       - name: Checkout code

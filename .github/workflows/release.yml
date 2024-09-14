@@ -18,6 +18,8 @@ jobs:
       # Step 1: Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}i
 
       # Step 2: Set up Java (Maven will be using Java)
       - name: Set up JDK
@@ -55,6 +57,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 1: Download the JAR artifact from the build job
       - name: Download JAR artifact
@@ -69,12 +73,12 @@ jobs:
         run: |
           TAG=${GITHUB_REF##*/}
           RELEASE_ID=$(curl -s \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token $GITHUB_TOKEN" \
             https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG | jq -r '.id')
           if [ "$RELEASE_ID" != "null" ]; then
             echo "Release with tag $TAG exists. Deleting release."
             curl -X DELETE \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Authorization: token $GITHUB_TOKEN" \
               https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID
           else
             echo "No existing release for tag $TAG."
@@ -95,6 +99,8 @@ jobs:
       # Step 4: Upload the JAR to the release
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./downloaded_artifact/jaas_relational_login-${{ needs.build.outputs.version }}.jar

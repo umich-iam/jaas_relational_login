@@ -18,8 +18,6 @@ jobs:
       # Step 1: Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}i
 
       # Step 2: Set up Java (Maven will be using Java)
       - name: Set up JDK

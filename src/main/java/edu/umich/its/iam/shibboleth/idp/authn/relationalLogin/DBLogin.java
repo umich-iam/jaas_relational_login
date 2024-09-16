@@ -305,7 +305,7 @@ public class DBLogin extends SimpleLogin {
         // SQL statement to update the last_login column
         String sql = "UPDATE " + userTable
                      + " SET " + lastLoginColumn
-                     + " = " + getCurrentTimestampString()
+                     + " = CURRENT_TIMESTAMP"
                      + " WHERE " + userColumn + " = ?";
 
         try (PreparedStatement preparedStatment = connection.prepareStatement(sql)) {
@@ -314,31 +314,6 @@ public class DBLogin extends SimpleLogin {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Error updating user database (" + e.getMessage() + ")");
-        }
-    }
-
-    private String getCurrentTimestampString() throws SQLException {
-        String driverName = dbDriver.toLowerCase();
-
-        logger.debug("Driver Name: " + driverName);
-
-        switch (driverName) {
-            case "com.mysql.cj.jdbc.Driver":
-                return "CURRENT_TIMESTAMP";
-            case "org.postgresql.Driver":
-                return "CURRENT_TIMESTAMP";
-            case "oracle.jdbc.driver.OracleDriver":
-                return "SYSDATE";
-            case "com.microsoft.sqlserver.jdbc.SQLServerDriver":
-                return "GETDATE()";
-            case "com.ibm.db2.jcc.DB2Driver":
-                return "CURRENT TIMESTAMP";
-            case "org.sqlite.JDBC":
-                return "CURRENT_TIMESTAMP";
-            case "org.h2.Driver":
-                return "CURRENT_TIMESTAMP()";
-            default:            
-                throw new UnsupportedOperationException("Unsupported DBMS: " + driverName);
         }
     }
 }

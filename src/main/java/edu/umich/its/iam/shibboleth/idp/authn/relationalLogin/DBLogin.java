@@ -322,20 +322,23 @@ public class DBLogin extends SimpleLogin {
 
         logger.debug("Driver Name: " + driverName);
 
-        if (driverName.contains("mysql")) {
-            return "CURRENT_TIMESTAMP";
-        } else if (driverName.contains("postgresql")) {
-            return "CURRENT_TIMESTAMP";
-        } else if (driverName.contains("oracle")) {
-            return "SYSDATE";
-        } else if (driverName.contains("sqlserver")) {
-            return "GETDATE()";
-        } else if (driverName.contains("sqlite")) {
-            return "CURRENT_TIMESTAMP";
-        } else if (driverName.contains("h2")) {
-            return "CURRENT_TIMESTAMP()";
-        } else {
-            throw new UnsupportedOperationException("Unsupported DBMS: " + driverName);
+        switch (driverName) {
+            case "com.mysql.cj.jdbc.Driver":
+                return "CURRENT_TIMESTAMP";
+            case "org.postgresql.Driver":
+                return "CURRENT_TIMESTAMP";
+            case "oracle.jdbc.driver.OracleDriver":
+                return "SYSDATE";
+            case "com.microsoft.sqlserver.jdbc.SQLServerDriver":
+                return "GETDATE()";
+            case "com.ibm.db2.jcc.DB2Driver":
+                return "CURRENT TIMESTAMP";
+            case "org.sqlite.JDBC":
+                return "CURRENT_TIMESTAMP";
+            case "org.h2.Driver":
+                return "CURRENT_TIMESTAMP()";
+            default:            
+                throw new UnsupportedOperationException("Unsupported DBMS: " + driverName);
         }
     }
 }

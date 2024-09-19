@@ -248,6 +248,10 @@ public class DBLogin extends SimpleLogin {
                 // Convert char[] password to byte[]
                 byte[] passwordBytes = new String(password).getBytes();
 
+                if (storedHash == null || storedHash.trim().isEmpty()) {
+                    throw new FailedLoginException(getOption("errorMessage", "Invalid details"));
+                }
+
                 if (!PasswordUtils.checkPassword(passwordBytes, storedHash, salt, hashAlgorithm)) {
                     throw new FailedLoginException(getOption("errorMessage", "Invalid details"));
                 }

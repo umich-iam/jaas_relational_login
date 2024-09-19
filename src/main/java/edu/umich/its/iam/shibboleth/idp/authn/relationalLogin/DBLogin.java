@@ -114,18 +114,48 @@ public class DBLogin extends SimpleLogin {
         return saltColumn;
     }
 
-    public void setSaltColumn(String saltColumn) {
-        validateIdentifier(saltColumn);
-        this.saltColumn = saltColumn;
+    public void setSaltColumn(String saltColumn) throws LoginException {
+        try {
+            // Check if the identifier is blank
+            if (saltColumn == null || saltColumn.trim().isEmpty()) {
+                // Skip validation and any related processing for blank values
+                return;
+            }
+
+            // Validate the identifier
+            validateIdentifier(saltColumn);
+
+            // Proceed with setting the last login column
+            // Your existing logic here
+            this.saltColumn = saltColumn;
+
+        } catch (IllegalArgumentException e) {
+            throw new LoginException("Invalid SQL identifier: " + e.getMessage());
+        }
     }
 
     public String getLastLoginColumn() {
         return lastLoginColumn;
     }
 
-    public void setLastLoginColumn(String lastLoginColumn) {
-        validateIdentifier(lastLoginColumn);
-        this.lastLoginColumn = lastLoginColumn;
+    public void setLastLoginColumn(String lastLoginColumn) throws LoginException {
+        try {
+            // Check if the identifier is blank
+            if (lastLoginColumn == null || lastLoginColumn.trim().isEmpty()) {
+                // Skip validation and any related processing for blank values
+                return;
+            }
+
+            // Validate the identifier
+            validateIdentifier(lastLoginColumn);
+
+            // Proceed with setting the last login column
+            // Your existing logic here
+            this.lastLoginColumn = lastLoginColumn;
+
+        } catch (IllegalArgumentException e) {
+            throw new LoginException("Invalid SQL identifier: " + e.getMessage());
+        }
     }
 
     public String getWhere() {
@@ -134,7 +164,12 @@ public class DBLogin extends SimpleLogin {
 
     public void setWhere(String where) {
         // Assuming 'where' is a valid SQL fragment and doesn't need validation
-        this.where = where;
+        // Check if the whereClause is blank
+        if (where == null || where.trim().isEmpty()) {
+            this.where = "";
+        } else {
+            this.where = " AND " + where;
+        }
     }
 
     private void validateIdentifier(String identifier) {
@@ -158,38 +193,42 @@ public class DBLogin extends SimpleLogin {
     @Override
     public void initialize(Subject subject, CallbackHandler callbackHandler, Map<String, ?> sharedState,
             Map<String, ?> options) {
-        super.initialize(subject, callbackHandler, sharedState, options);
+        try {
+            super.initialize(subject, callbackHandler, sharedState, options);
 
-        String dbDriver = getOption("dbDriver", null);
-        if (dbDriver == null)
-            throw new Error("No database driver named (dbDriver=?)");
-        setDbDriver(dbDriver);
+            String dbDriver = getOption("dbDriver", null);
+            if (dbDriver == null)
+                throw new Error("No database driver named (dbDriver=?)");
+            setDbDriver(dbDriver);
 
-        String dbURL = getOption("dbURL", null);
-        if (dbURL == null)
-            throw new Error("No database URL specified (dbURL=?)");
-        setDbURL(dbURL);
+            String dbURL = getOption("dbURL", null);
+            if (dbURL == null)
+                throw new Error("No database URL specified (dbURL=?)");
+            setDbURL(dbURL);
 
-        String dbUser = getOption("dbUser", null);
-        setDbUser(dbUser);
+            String dbUser = getOption("dbUser", null);
+            setDbUser(dbUser);
 
-        String dbPassword = getOption("dbPassword", null);
-        setDbPassword(dbPassword);
+            String dbPassword = getOption("dbPassword", null);
+            setDbPassword(dbPassword);
 
-        if ((dbUser == null && dbPassword != null) || (dbUser != null && dbPassword == null))
-            throw new Error("Either provide dbUser and dbPassword or encode both in dbURL");
+            if ((dbUser == null && dbPassword != null) || (dbUser != null && dbPassword == null))
+                throw new Error("Either provide dbUser and dbPassword or encode both in dbURL");
 
-        setUserTable(getOption("userTable", "User"));
-        setUserColumn(getOption("userColumn", "user_name"));
-        setPassColumn(getOption("passColumn", "user_passwd"));
-        setSaltColumn(getOption("saltColumn", ""));
-        setLastLoginColumn(getOption("lastLoginColumn", ""));
-        setWhere(getOption("where", ""));
-
-        if (getWhere() != null && getWhere().length() > 0)
-            setWhere(" AND " + getWhere());
-        else
-            setWhere("");
+            setUserTable(getOption("userTable", "User"));
+            setUserColumn(getOption("userColumn", "user_name"));
+            setPassColumn(getOption("passColumn", "user_passwd"));
+            setWhere(getOption("where", ""));
+            try {
+                setSaltColumn(getOption("saltColumn", ""));
+                setLastLoginColumn(getOption("lastLoginColumn", ""));
+            } catch (LoginException e) {
+                // Handle the exception, possibly logging it or rethrowing it
+                throw new LoginException("Initialization failed: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Initialization failed: " + e.getMessage(), e);
+        }
     }
 
     protected synchronized Vector<TypedPrincipal> validateUser(String username, char password[]) throws LoginException {
@@ -231,8 +270,9 @@ public class DBLogin extends SimpleLogin {
             }
 
             // If password is valid, update the last login timestamp
-            if (!lastLoginColumn.equals(""))
+            if (Objects.nonNull(lastLoginColumn) && !lastLoginColumn.trim().isEmpty()) {
                 updateLastLogin(connection, username);
+            }
 
             Vector<TypedPrincipal> principal = new Vector<>();
             principal.add(new TypedPrincipal(username, TypedPrincipal.USER));

@@ -17,11 +17,11 @@ jobs:
     steps:
       # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Step 2: Set up Java (Maven will be using Java)
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'  # Or adopt, zulu depending on the JDK distribution
           java-version: '17'  # Change to the version of Java your project uses
@@ -41,7 +41,7 @@ jobs:
 
       # Step 5: Upload the JAR as an artifact
       - name: Upload JAR artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jaas_relational_login-${{ env.VERSION }}
           path: target/jaas_relational_login-${{ env.VERSION }}.jar
@@ -54,13 +54,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 1: Download the JAR artifact from the build job
       - name: Download JAR artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: jaas_relational_login-${{ needs.build.outputs.version }}
           path: ./downloaded_artifact  # Specify the download path

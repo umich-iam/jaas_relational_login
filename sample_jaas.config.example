@@ -12,5 +12,7 @@ ShibUserPassAuth  {
    hashAlgorithm="SHA-512"
    saltColumn=""
    rehashCryptEnabled=false
+   lastLogin="lastLogin"
+   timestampFunction="CURRENT_TIMESTAMP"
    errorMessage="Invalid password";
 };

@@ -60,6 +60,7 @@ public class DBLoginTest {
         options.put("passColumn", "password");
         options.put("saltColumn", "salt");
         options.put("lastLoginColumn", "last_login");
+        options.put("timestampFunction", "CURRENT_TIMESTAMP");
         options.put("where", "active = TRUE");
         return options;
     }

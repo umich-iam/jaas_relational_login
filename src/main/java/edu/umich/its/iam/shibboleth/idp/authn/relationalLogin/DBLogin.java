@@ -46,6 +46,7 @@ public class DBLogin extends SimpleLogin {
     private String passColumn;
     private String saltColumn;
     private String lastLoginColumn;
+    private String timestampFunction;
     private String where;
 
     private static final Logger logger = LoggerFactory.getLogger(DBLogin.class.getName());
@@ -158,6 +159,15 @@ public class DBLogin extends SimpleLogin {
         }
     }
 
+    public String getTimestampFunction() {
+        return timestampFunction;
+    }
+
+    public void setTimestampFunction(String timestampFunction) {
+        // Assuming 'timestampFunction' is a valid SQL function and doesn't need validation
+        this.timestampFunction = timestampFunction;
+    }
+
     public String getWhere() {
         return where;
     }
@@ -200,14 +210,17 @@ public class DBLogin extends SimpleLogin {
             if (dbDriver == null)
                 throw new Error("No database driver named (dbDriver=?)");
             setDbDriver(dbDriver);
+            logger.debug("dbDriver: " + dbDriver);
 
             String dbURL = getOption("dbURL", null);
             if (dbURL == null)
                 throw new Error("No database URL specified (dbURL=?)");
             setDbURL(dbURL);
+            logger.debug("dbURL: " + dbURL);
 
             String dbUser = getOption("dbUser", null);
             setDbUser(dbUser);
+            logger.debug("dbUser: " + dbUser);
 
             String dbPassword = getOption("dbPassword", null);
             setDbPassword(dbPassword);
@@ -215,17 +228,32 @@ public class DBLogin extends SimpleLogin {
             if ((dbUser == null && dbPassword != null) || (dbUser != null && dbPassword == null))
                 throw new Error("Either provide dbUser and dbPassword or encode both in dbURL");
 
-            setUserTable(getOption("userTable", "User"));
-            setUserColumn(getOption("userColumn", "user_name"));
-            setPassColumn(getOption("passColumn", "user_passwd"));
-            setWhere(getOption("where", ""));
-            try {
-                setSaltColumn(getOption("saltColumn", ""));
-                setLastLoginColumn(getOption("lastLoginColumn", ""));
-            } catch (LoginException e) {
-                // Handle the exception, possibly logging it or rethrowing it
-                throw new LoginException("Initialization failed: " + e.getMessage());
-            }
+            String userTable = getOption("userTable", "User");
+            setUserTable(userTable);
+            logger.debug("userTable: " + userTable);
+
+            String userColumn = getOption("userColumn", "user_name");
+            setUserColumn(userColumn);
+            logger.debug("userColumn: " + userColumn);
+
+            String passColumn = getOption("passColumn", "user_passwd");
+            setPassColumn(passColumn);
+            logger.debug("passColumn: " + passColumn);
+
+            String where = getOption("where", "");
+            setWhere(where);
+
+            String timestampFunction = getOption("timestampFunction", "");
+            setTimestampFunction(timestampFunction);
+            logger.debug("timeStampFunction: " + timestampFunction);
+
+            String saltColumn = getOption("saltColumn", "");
+            setSaltColumn(saltColumn);
+            logger.debug("saltColumn: " + saltColumn);
+
+            String lastLoginColumn = getOption("lastLoginColumn", "");
+            setLastLoginColumn(lastLoginColumn);
+            logger.debug("lastLoginColumn: " + lastLoginColumn);
         } catch (Exception e) {
             throw new RuntimeException("Initialization failed: " + e.getMessage(), e);
         }
@@ -346,11 +374,22 @@ public class DBLogin extends SimpleLogin {
     private void updateLastLogin(Connection connection, String username) throws SQLException {
         logger.debug("Updating last login for user: " + username);
 
+        // Ensure timestampFunction is properly set
+        if (timestampFunction == null || timestampFunction.trim().isEmpty()) {
+            throw new IllegalStateException("timestampFunction is not set");
+        }
+
+        // Log the value of timestampFunction
+        logger.debug("Using timestampFunction: {}", timestampFunction);
+
         // SQL statement to update the last_login column
         String sql = "UPDATE " + userTable
                      + " SET " + lastLoginColumn
-                     + " = CURRENT_TIMESTAMP"
+                     + " = " + timestampFunction
                      + " WHERE " + userColumn + " = ?";
+
+        // Log the final SQL statement
+        logger.debug("Executing SQL: {}", sql);
 
         try (PreparedStatement preparedStatment = connection.prepareStatement(sql)) {
             preparedStatment.setString(1, username);

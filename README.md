@@ -135,32 +135,23 @@ For details and instruction, please visit http://www.robertogallea.com/blog/shib
 
 ## Verify the contents of the generated JAR file
 ```
-jar tf target/jaas_relational_login-1.1.0-SNAPSHOT.jar
+jar tf target/jaas_relational_login-1.1.1-SNAPSHOT.jar
 ```
 
-### Run the Java application using the generated JAR file
-```
-java -cp target/jaas_relational_login-1.1.0-SNAPSHOT.jar:lib/mysql-connector-j-8.3.0.jar:lib/spring-security-crypto-5.1.3.RELEASE.jar:lib/commons-logging-1.3.3.jar:lib/commons-codec-1.16.1.jar -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
-```
-
-## THIS SEEMS LESS ANNOYING?
+## Run the Java application using the generated JAR file
 ```
 mvn dependency:build-classpath -Dmdep.outputFile=classpath.txt
+mvn test-compile
 
 java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes:target/test-classes" \
   -Djava.security.auth.login.config=config/jaas.config \
   -Dlogback.configurationFile=config/logback.xml \
   sample.SampleAcn
 ```
-or
-```
-mvn test-compile
-jaas_relational_login % java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes:target/test-classes" -Djava.security.auth.login.config=config/jaas.config -Dlogback.configurationFile=config/logback.xml sample.SampleAcn
-```
 
 ## TAGGING
-git tag -d v1.1.0-SNAPSHOT
-git push origin --delete v1.1.0-SNAPSHOT
+git tag -d v1.1.1-SNAPSHOT
+git push origin --delete v1.1.1-SNAPSHOT
 
-git tag v1.1.0-SNAPSHOT
-git push origin v1.1.0-SNAPSHOT
+git tag v1.1.1-SNAPSHOT
+git push origin v1.1.1-SNAPSHOT

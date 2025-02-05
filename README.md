@@ -48,7 +48,7 @@ Build it to obtain a jar archive, that has to be deployed to your shibboleth IDP
 ## JAAS Custom Class Deployment
 After building the JAAS module, you are required to deploy to the IDP application, in order to make it available for use. This is accomplished following some steps:
 
-1) Copy the archive jaas_relational_login-2.0.0.jar under /edit-webapp/WEB-INF/lib
+1) Copy the archive jaas_relational_login-1.1.0.jar under /edit-webapp/WEB-INF/lib
 2) Download the JDBC driver for your DBMS, for example, for Oracle is ojdbc7.jar and copy it under /edit-webapp/WEB-INF/lib
 3) Run /bin/build.sh script to rebuild the IDP web application
 4) If required, deploy the newly built application into your container (tomcat, jetty, IIs, etc.)

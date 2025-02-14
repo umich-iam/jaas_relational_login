@@ -73,7 +73,7 @@ jobs:
           RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/$TAG --jq '.id' || echo "null")
           if [ "$RELEASE_ID" != "null" ]; then
             echo "Release with tag $TAG exists. Deleting release."
-            gh api repos/${{ github.repository }}/releases/$RELEASE_ID -X DELETE
+            gh api repos/${{ github.repository }}/releases/$RELEASE_ID -X DELETE || echo "Failed to delete release"
           else
             echo "No existing release for tag $TAG."
           fi
@@ -82,8 +82,8 @@ jobs:
       - name: Create GitHub Release
         id: create_release
         run: |
-          gh release create v${{ env.VERSION }} \
+          gh release create $TAG \
             ./downloaded_artifact/jaas_relational_login-${{ env.VERSION }}.jar \
-            --title "Release v${{ env.VERSION }}" \
-            --notes "Release notes for version v${{ env.VERSION }}" \
+            --title "Release $TAG" \
+            --notes "Release notes for version $TAG" \
             --target ${{ github.ref }}

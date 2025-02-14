@@ -38,6 +38,7 @@ jobs:
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "Project version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_ENV
+          echo "::set-output name=version::$VERSION"
 
       # Step 5: Upload the JAR as an artifact
       - name: Upload JAR artifact
@@ -61,7 +62,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: jaas_relational_login-${{ needs.build.outputs.version }}
+          name: jaas_relational_login-${{ env.VERSION }}
           path: ./downloaded_artifact  # Specify the download path
 
       # Step 2: Check if a release exists and delete it if necessary
@@ -81,8 +82,8 @@ jobs:
       - name: Create GitHub Release
         id: create_release
         run: |
-          gh release create v${{ needs.build.outputs.version }} \
-            ./downloaded_artifact/jaas_relational_login-${{ needs.build.outputs.version }}.jar \
-            --title "Release v${{ needs.build.outputs.version }}" \
-            --notes "Release notes for version v${{ needs.build.outputs.version }}" \
+          gh release create v${{ env.VERSION }} \
+            ./downloaded_artifact/jaas_relational_login-${{ env.VERSION }}.jar \
+            --title "Release v${{ env.VERSION }}" \
+            --notes "Release notes for version v${{ env.VERSION }}" \
             --target ${{ github.ref }}

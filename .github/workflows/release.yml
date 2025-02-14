@@ -82,8 +82,9 @@ jobs:
       - name: Create GitHub Release
         id: create_release
         run: |
+          TAG=${GITHUB_REF##*/}
           gh release create $TAG \
             ./downloaded_artifact/jaas_relational_login-${{ env.VERSION }}.jar \
             --title "Release $TAG" \
             --notes "Release notes for version $TAG" \
-            --target ${{ github.ref }}
+            --target ${{ github.sha }}

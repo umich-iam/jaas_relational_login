@@ -1,10 +1,12 @@
 // $Id: SimpleLogin.java,v 1.5 2003/02/17 20:13:23 andy Exp $
-package relationalLogin;
+package edu.umich.its.iam.shibboleth.idp.authn.relationalLogin;
 
 import java.util.*;
 import java.security.Principal;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.*;
+
+
 
 /**
  * Base class for a variety of simple login modules that simply authenticate
@@ -12,11 +14,16 @@ import javax.security.auth.login.*;
  *
  * @author Andy Armstrong, <A HREF="mailto:andy@tagish.com">andy@tagish.com</A>
  * @version 1.0.3
+ * 
+ * Minor changes by ITS IAM Infrastructure Developers, University of Michigan
+ * Added typing to variable declarations. 
+ * Changed namespace to edu.umich.it.iam.shibboleth.idp.authn.relationalLogin for organizational purposes.
  */
 public abstract class SimpleLogin extends BasicLogin
 {
-	protected Vector			principals      = null;
-	protected Vector            pending         = null;
+
+	protected Vector<Principal>			principals      = null;
+	protected Vector<TypedPrincipal>    pending         = null;
 
 	// the authentication status
 	protected boolean			commitSucceeded = false;
@@ -31,7 +38,7 @@ public abstract class SimpleLogin extends BasicLogin
 	 * @return a Vector of Principals that apply for this user.
 	 * @throws LoginException if the login fails.
 	 */
-	protected abstract Vector validateUser(String username, char password[]) throws LoginException;
+	protected abstract Vector<TypedPrincipal> validateUser(String username, char password[]) throws LoginException;
 
 	/**
 	 * Authenticate the user.
@@ -89,7 +96,7 @@ public abstract class SimpleLogin extends BasicLogin
 	 * @param s The <CODE>Set</CODE> to add the Principle to
 	 * @param p Principle to add
 	 */
-	protected void putPrincipal(Set s, Principal p)
+	protected void putPrincipal(Set<Principal> s, Principal p)
 	{
 		s.add(p);
 		principals.add(p);
@@ -121,8 +128,8 @@ public abstract class SimpleLogin extends BasicLogin
 			return false;
 		}
 
-		principals = new Vector();
-		Set s = subject.getPrincipals();
+		principals = new Vector<Principal>();
+		Set<Principal> s = subject.getPrincipals();
 
 		for (int p = 0; p < pending.size(); p++) {
 			putPrincipal(s, (Principal) pending.get(p));
@@ -177,7 +184,7 @@ public abstract class SimpleLogin extends BasicLogin
 		pending         = null;
 		commitSucceeded	= false;
 		// Remove all the principals we added
-		Set s = subject.getPrincipals();
+		Set<Principal> s = subject.getPrincipals();
 		int sz = principals.size();
 		for (int p = 0; p < sz; p++) {
 			s.remove(principals.get(p));

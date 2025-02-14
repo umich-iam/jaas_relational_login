@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'  # Trigger on version tags like 'v1.*'
+  workflow_dispatch:  # Allow manual triggering from the GitHub UI
 
 permissions:
   contents: write  # Grant write permissions to contents, which includes releases
@@ -17,11 +18,11 @@ jobs:
     steps:
       # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Step 2: Set up Java (Maven will be using Java)
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'  # Or adopt, zulu depending on the JDK distribution
           java-version: '17'  # Change to the version of Java your project uses
@@ -36,31 +37,29 @@ jobs:
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "Project version: $VERSION"
-          echo "::set-output name=version::$VERSION"
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "version=$VERSION" >> "$GITHUB_ENV"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       # Step 5: Upload the JAR as an artifact
       - name: Upload JAR artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: jaas_relational_login-${{ env.VERSION }}
-          path: target/jaas_relational_login-${{ env.VERSION }}.jar
+          name: jaas_relational_login-${{ steps.extract_version.outputs.version }}
+          path: target/jaas_relational_login-${{ steps.extract_version.outputs.version }}.jar
 
   release:
     needs: build
     runs-on: ubuntu-latest
     env:
-      VERSION: ${{ needs.build.outputs.version }}  # Set the VERSION environment variable
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Set the GH_TOKEN environment variable
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/checkout@v4
 
       # Step 1: Download the JAR artifact from the build job
       - name: Download JAR artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: jaas_relational_login-${{ needs.build.outputs.version }}
           path: ./downloaded_artifact  # Specify the download path
@@ -70,14 +69,10 @@ jobs:
         id: check_release
         run: |
           TAG=${GITHUB_REF##*/}
-          RELEASE_ID=$(curl -s \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG | jq -r '.id')
+          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/$TAG --jq '.id' || echo "null")
           if [ "$RELEASE_ID" != "null" ]; then
             echo "Release with tag $TAG exists. Deleting release."
-            curl -X DELETE \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID
+            gh api repos/${{ github.repository }}/releases/$RELEASE_ID -X DELETE || echo "Failed to delete release"
           else
             echo "No existing release for tag $TAG."
           fi
@@ -85,22 +80,10 @@ jobs:
       # Step 3: Create a GitHub release
       - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ needs.build.outputs.version }}  # Create a release tag matching the version from pom.xml
-          release_name: Release v${{ needs.build.outputs.version }}
-          draft: false
-          prerelease: false
-
-      # Step 4: Upload the JAR to the release
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./downloaded_artifact/jaas_relational_login-${{ needs.build.outputs.version }}.jar
-          asset_name: jaas_relational_login-${{ needs.build.outputs.version }}.jar
-          asset_content_type: application/java-archive
+        run: |
+          TAG=${GITHUB_REF##*/}
+          gh release create $TAG \
+            ./downloaded_artifact/jaas_relational_login-${{ needs.build.outputs.version }}.jar \
+            --title "Release $TAG" \
+            --notes "Release notes for version $TAG" \
+            --target ${{ github.sha }}

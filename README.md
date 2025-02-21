@@ -150,8 +150,8 @@ java -cp "$(cat classpath.txt):lib/mysql-connector-j-8.3.0.jar:target/classes:ta
 ```
 
 ## TAGGING
-git tag -d v1.1.1
-git push origin --delete v1.1.1
+git tag -d v1.1.2
+git push origin --delete v1.1.2
 
-git tag v1.1.1
-git push origin v1.1.1
+git tag v1.1.2
+git push origin v1.1.2
